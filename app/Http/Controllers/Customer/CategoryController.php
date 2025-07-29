@@ -16,7 +16,7 @@ class CategoryController extends Controller
 
     }
 
-    public function index()
+    public function getAllCategories()
     {
         return $this->CategoryService->getCategory();
     }
@@ -24,12 +24,14 @@ class CategoryController extends Controller
     public function store(StoreCategoryRequest $request)
     {
         $validated = $request->validated();
-        $result = $this->CategoryService->createCategory($validated);
-
-            return response()->json($result, 201);
+        $category = $this->CategoryService->createCategory($validated);
+            return response()->json([
+                    'data' => $category,
+                    'message' => 'Category created successfully'
+                ], 201);
     }
 
-    public function show( $parent_id)
+    public function getSubCategories( $parent_id)
     {
         return $this->CategoryService->getSubCategory($parent_id);
     }
@@ -40,17 +42,6 @@ class CategoryController extends Controller
 
 
 
-//
-//    public function update(UpdateWarehouseRequest $request, int $id)
-//    {
-//        return $this->service->updateWarehouse($id, $request->validated())
-//            ->response();
-//    }
-//
-//    public function destroy(int $id)
-//    {
-//        return $this->service->deleteWarehouse($id);
-//    }
 
 
 }

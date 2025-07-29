@@ -35,7 +35,7 @@ protected ItemUnitService $itemUnitService;
     }
     public function showAll($item_id)
     {
-        $result = $this->itemUnitService->getAllItemUnit($item_id);
+        $result = $this->itemUnitService->getAllItemUnits($item_id);
 
         return response()->json($result, $result['success'] ? 200 : 404);
     }

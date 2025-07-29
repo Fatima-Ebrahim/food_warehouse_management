@@ -18,7 +18,10 @@ class UnitContoller extends Controller
     public function store(CreateUnitRequest $request)
     {
         $result = $this->unitService->createUnit($request->validated());
-        return response()->json($result,200);
+        return response()->json([
+            'data' => $result,
+            'message' => 'Unit created successfully'
+        ],200);
     }
     public function index()
     {

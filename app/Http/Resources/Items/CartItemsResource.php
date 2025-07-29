@@ -21,6 +21,7 @@ class CartItemsResource extends JsonResource
             'how_many_each_one_has' => optional($this->itemUnit)->conversion_factor,
             'selling_price_for_one' => optional($this->itemUnit)->selling_price,
             'item_id' => optional($this->itemUnit)->item_id,
+            'item_image'=>optional($this->itemUnit->item)->image,
             'unit_id' => optional($this->itemUnit)->unit_id,
         ];
     }
