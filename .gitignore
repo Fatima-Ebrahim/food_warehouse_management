@@ -1,0 +1,46 @@
+# Laravel
+/vendor/
+/node_modules/
+/public/storage
+/storage/*.key
+/storage/app/public
+/storage/debugbar
+/storage/framework/cache/data
+/storage/framework/sessions
+/storage/framework/views
+/storage/logs
+.env
+.env.*.backup
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+.idea
+.phpunit.result.cache
+
+# OS-specific
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# PhpStorm / VSCode
+.vscode/
+.idea/
+
+# Composer
+composer.lock
+
+# Laravel Passport keys
+storage/oauth-public.key
+storage/oauth-private.key
+
+# Logs
+*.log
+*.html
+
+# Backup or temp files
+*.bak
+*.tmp
+*.swp

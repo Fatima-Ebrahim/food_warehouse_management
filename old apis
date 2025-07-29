@@ -1,0 +1,128 @@
+
+Route::apiResource('suppliers', SupplierController::class);
+// add purchase
+
+
+
+//-- تتمة عملية التخزين والاقتراحات
+
+//notification
+
+Route::post('/send-notification', [NotificationController::class, 'sendToUser']);
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('/notifications/{notificationId}/mark-as-seen', [NotificationController::class, 'markAsSeen']);
+    Route::post('/device-token/store', [NotificationController::class, 'storeUserDeviceToken']);
+    Route::get('/notifications/{notificationId}/mark-as-seen', [NotificationController::class, 'markAsSeen']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+});
+// });
+///todo تزبيط الصلاحيات
+//Route::middleware(['auth:api', 'role:warehouse_keeper'])->group(function () {
+//});
+//Route::middleware(['auth:api', 'role:admin|warehouse_keeper'])->group(function () {
+//    Route::get('/manage-orders', function () {
+//        return response()->json(['message' => 'صلاحياتك تسمح بالوصول']);
+//    });
+//});
+
+//-------------------------------------------- warehouse design
+Route::apiResource('warehouse-coordinates', WarehouseDesignController::class);
+Route::post('/cabinets-with-shelves', [WarehouseDesignController::class, 'storeCabinetWithShelves']);
+Route::prefix('warehouse-design')->group(function () {
+    Route::post('/cabinets', [WarehouseDesignController::class, 'storeCabinet']);
+    Route::get('/cabinets/{id}', [WarehouseDesignController::class, 'getCabinetWithCoordinates']);
+    Route::put('/cabinets/{id}', [WarehouseDesignController::class, 'updateCabinet']);
+    Route::delete('/cabinets/{id}', [WarehouseDesignController::class, 'deleteCabinet']);
+    Route::get('/cabinets', [WarehouseDesignController::class, 'indexCabinets']);
+    // Zone routes
+    Route::post('/zones', [WarehouseDesignController::class, 'storeZone']);
+    Route::get('/zones/{id}', [WarehouseDesignController::class, 'getZoneWithCoordinates']);
+    Route::put('/zones/{id}', [WarehouseDesignController::class, 'updateZone']);
+    Route::delete('/zones/{id}', [WarehouseDesignController::class, 'deleteZone']);
+    Route::get('/zones', [WarehouseDesignController::class, 'indexZones']);
+    // Coordinates Routes
+    Route::prefix('coordinates')->group(function () {
+        Route::get('/', [WarehouseDesignController::class, 'indexCoordinate'])
+            ->name('warehouse.coordinates.index');
+
+        Route::post('/', [WarehouseDesignController::class, 'storeCoordinate'])
+            ->name('warehouse.coordinates.store');
+
+//        Route::get('/{id}', [WarehouseDesignController::class, 'showCoordinate'])
+//            ->name('warehouse.coordinates.show');
+
+//        Route::delete('/{id}', [WarehouseDesignController::class, 'destroyCoordinate'])
+//            ->name('warehouse.coordinates.destroy');
+
+        Route::post('/{id}/assign-zone', [WarehouseDesignController::class, 'assignZone'])
+            ->name('warehouse.coordinates.assign-zone');
+
+    });
+
+    // Zones Routes
+    Route::prefix('zones')->group(function () {
+        Route::post('/', [WarehouseDesignController::class, 'storeZone'])
+            ->name('warehouse.zones.store');
+        Route::get('/{id}', [WarehouseDesignController::class, 'showZone'])
+            ->name('warehouse.zones.show');
+    });
+
+    // Shelves Routes
+    Route::prefix('shelves')->group(function () {
+        Route::post('/', [WarehouseDesignController::class, 'storeShelf'])
+            ->name('warehouse.shelves.store');
+        Route::get('/', [WarehouseDesignController::class, 'indexShelves'])
+            ->name('warehouse.shelves.index');
+    });
+});
+
+Route::get('/cabinets/{id}', [WarehouseDesignController::class, 'showCabinet']);
+Route::get('/shelves', [WarehouseDesignController::class, 'indexShelves']);
+Route::get('/shelves/{id}', [WarehouseDesignController::class, 'showShelf']);
+Route::post('/cabinets', [WarehouseDesignController::class, 'storeCabinet']);
+Route::post('/shelves', [WarehouseDesignController::class, 'storeShelf']);
+
+//------------------------------------------------ITEM STORAGE
+Route::post('storage/store-item', [ItemStorageController::class, 'storeItem']);
+Route::post('storage/store-item-auto', [ItemStorageController::class, 'storeItemAuto']);
+Route::get('item-details/{purchaseReceiptItemId}', [ItemStorageController::class, 'getItemDetails']);
+Route::post('shelf-capacity', [ItemStorageController::class, 'getShelfCapacity']);
+Route::get('/purchase-receipt-items/{purchaseReceiptItemId}/cabinet-shelf-statuses', [ItemStorageController::class, 'getShelfStatuses']);
+Route::get('/cabinets/{cabinetId}/summary', [ItemStorageController::class, 'getCabinetSummary']);
+Route::get('/shelves/{shelfId}/details', [ItemStorageController::class, 'getShelfDetails']);
+Route::prefix('items/{item}')->group(function () {
+    Route::get('suggested-zones', [ItemStorageController::class, 'suggestedZones']);
+    Route::get('suggested-zones-with-cabinets', [ItemStorageController::class, 'suggestedZonesWithCabinets']);
+    Route::get('suggested-cabinets', [ItemStorageController::class, 'suggestedCabinets']);
+    Route::get('suggested-shelves', [ItemStorageController::class, 'suggestedShelves']);
+});
+//-------------------------------------------PURCHASE ORDER
+Route::apiResource('purchase-orders', PurchaseOrderController::class)
+    ->only(['store']);
+
+Route::get('suppliers/{supplier}/items', [PurchaseOrderController::class, 'getBySupplier']);
+Route::get('purchase-orders/pending', [PurchaseOrderController::class, 'getPendingOrders']);
+Route::get('purchase-orders/{order}/materials', [PurchaseOrderController::class, 'showOrderWithMaterials']);
+Route::get('purchase-orders/{order}/details', [PurchaseOrderController::class, 'showPurchaseOrderDetails']);
+Route::get('purchase-orders/{order}/process-partial-receipt', [PurchaseOrderController::class, 'processPartialReceipt']);
+Route::get('purchase-orders/processed', [PurchaseOrderController::class, 'getProcessedOrders']);
+Route::put('receipt-items/{item}/production-date', [PurchaseOrderController::class, 'updateProductionDate']);
+Route::put('receipt-items/{item}/expiry-date', [PurchaseOrderController::class, 'updateExpiryDate']);
+Route::get('items/expiring-soon', [PurchaseOrderController::class, 'getExpiringSoon']);
+//Route::get('purchase-orders/unstored', [PurchaseOrderController::class, 'unstoredOrders']);
+Route::get('/unstored-orders-summary', [PurchaseOrderController::class, 'getUnstoredOrdersSummary']);
+Route::get('/unstored-orders/{orderId}/items', [PurchaseOrderController::class, 'getUnstoredOrderItems']);
+
+Route::get('/purchase-orders/{orderId}/invoice', [PurchaseOrderController::class, 'showAsInvoice']);
+Route::get('/purchase-orders/{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
+Route::post('testPDF', [PurchaseOrderController::class, 'testPDF']);
+
+
+Route::prefix('inventory')->middleware('auth:api')->group(function () {
+    Route::post('request-stocktake', [InventoryController::class, 'requestStocktake']);
+    Route::get('reports', [InventoryController::class, 'getStocktakeReports']);
+    Route::get('reports/{id}', [InventoryController::class, 'getStocktakeReportDetails']);
+//    Route::post('reconcile', [InventoryController::class, 'reconcile']);
+    Route::post('submit-stocktake/{stocktakeId}', [InventoryController::class, 'submitStocktake']);
+});
