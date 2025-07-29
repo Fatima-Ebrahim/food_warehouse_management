@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notification;
 class FirebaseChannel
 {
 
+
     /**
      * The Firebase service instance.
      *
