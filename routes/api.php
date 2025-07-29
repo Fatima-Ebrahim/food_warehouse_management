@@ -39,8 +39,8 @@ Route::put('changePassword', [AuthController::class, 'addPassword']);
 
 //category
 Route::post('addCategory', [CategoryController::class, 'store']);
-Route::get('showCategories', [CategoryController::class, 'index']);
-Route::get('showSubCategories/{parent_id}', [CategoryController::class, 'show']);
+Route::get('showCategories', [CategoryController::class, 'getAllCategories']);
+Route::get('showSubCategories/{parent_id}', [CategoryController::class, 'getSubCategories']);
 Route::get('lastLevel', [CategoryController::class, 'showLastLevel']);
 //unit
 Route::post('addUnit', [UnitContoller::class, 'store']);
@@ -52,6 +52,7 @@ Route::put('/updateItems/{id}', [ItemController::class, 'update']);
 Route::get('isBaseUnit', [ItemController::class, 'baseUnitForItem']);
 Route::get('/showAllItems', [ItemController::class, 'getAllItems']);
 Route::get('itemDetails/{id}', [ItemController::class, 'getItemById']);
+Route::get('showItemImage/{id}', [ItemController::class, 'showItemImage']);
 //itemUnit
 Route::post('/addItemUnit', [ItemUnitController::class, 'store']);
 Route::get('showItemUnit', [ItemUnitController::class, 'show']);
@@ -67,7 +68,7 @@ Route::get('/showOrdersSettings', [SettingsController::class, 'indexOrders']);
 Route::put('/updateInstallmentsSettings', [SettingsController::class, 'updateInstallments']);
 Route::get('/showInstallmentsSettings', [SettingsController::class, 'indexInstallments']);
 //-------------------------------------------------------------------------------------------
-///todo
+
 Route::middleware('auth:api')->group(function () {
     //user points
     Route::get('showPoints', [PointsController::class, 'getPoints']);
@@ -80,6 +81,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('preview-price', [CartItemController::class, 'previewSelectedItemsPrice']);
 //orders---------------------
     Route::post('/orders/confirm', [OrderController::class, 'confirm']);
+    ///todo
+    Route::get('paymentMethod',[]);
+
 });
 
 //--------------------------api  fatima
