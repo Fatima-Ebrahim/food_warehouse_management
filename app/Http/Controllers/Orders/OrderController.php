@@ -28,13 +28,13 @@ class  OrderController extends Controller
 
             return response()->json([
                 'status' => true,
-                'message' => 'تم تأكيد الطلب بنجاح',
+                'message' => 'order confirmed successfully ',
                 'data' => $order
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => false,
-                'message' => 'حدث خطأ أثناء تأكيد الطلب',
+                'message' => 'error while confirm the order',
                 'error' => $e->getMessage()
             ], 400);
         }

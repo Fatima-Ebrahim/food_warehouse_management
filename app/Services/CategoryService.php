@@ -12,14 +12,9 @@ class CategoryService{
         $this->CategoryRepository=$category;
     }
 
-    public function CreateCategory(array $data){
-
-            $category =$this->CategoryRepository->create($data);
-            return [
-                'data' => $category,
-                'message' => 'Category created successfully'
-                ];
-
+    public function CreateCategory(array $data)
+    {
+           return $this->CategoryRepository->create($data);
     }
 
     public function getCategory(){

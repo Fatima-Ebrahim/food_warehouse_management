@@ -41,4 +41,10 @@ class CartItemRepository{
             })
             ->firstOrFail();
     }
+
+    public function checkIfItemExistsOnCart($itemUnitId ,$cart){
+        return $cart->cartItems()
+            ->where('item_unit_id', $itemUnitId)
+            ->exists();
+    }
 }

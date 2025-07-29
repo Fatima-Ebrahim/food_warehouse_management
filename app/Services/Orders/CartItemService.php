@@ -27,10 +27,15 @@ class CartItemService{
         $this->itemRepository =     $itemRepository;
     }
 
-    public function addToCart( array $data)
+    public function addToCart( array $data ,$user)
     {
-        $user=auth()->user();
+
         $cart = $user->cart ?? Cart::create(['user_id' => $user->id]);
+
+        if($this->cartItemRepository->checkIfItemExistsOnCart($data['item_unit_id'] , $cart))
+        {
+            return "this item already exist on cart with this unit" ;
+        }
         return $this->cartItemRepository->create([
             'cart_id' => $cart->id,
             'item_unit_id' => $data['item_unit_id'],
@@ -48,30 +53,24 @@ class CartItemService{
         return $this->cartItemRepository->delete($cartItem);
     }
 
-    public function getUserCartItems()
+    public function getUserCartItems($user)
     {
-        $user = auth()->user();
-        $cart = $user->cart;
 
+        $cart = $user->cart;
         if (!$cart) {
             return CartItemsResource::collection(collect());
         }
 
         $cartItems = $this->cartItemRepository->getByCartId($cart->id);
-
         return CartItemsResource::collection($cartItems);
     }
 
-    /**
-     * حساب السعر للمنتجات المحددة
-     */
     public function calculateSelectedItemsPrice(array $items, int $userId, ?int $pointsUsed = 0): array
     {
         $totalBeforeDiscount = 0;
         $details = [];
 
         foreach ($items as $item) {
-            // جلب العنصر من السلة
             $cartItem = $this->cartItemRepository->getCartItemForUser(
                 $item['cart_item_id'],
                 $userId
@@ -79,24 +78,23 @@ class CartItemService{
 
             $requestedQty = $item['quantity'];
 
-            // الكمية المتوفرة بالوحدة الأساسية
-            $availableQuantityInBaseUnit = $cartItem->itemUnit->item->Total_Available_Quantity;
-
-            // الوحدة المختارة من المستخدم
+            $itemModel = $cartItem->itemUnit->item;
+            $availableQuantityInBaseUnit = $itemModel->Total_Available_Quantity;
             $selectedUnitId = $cartItem->itemUnit->unit->id;
+            $conversionFactor = $cartItem->itemUnit->conversion_factor;
 
-            // الوحدة الأساسية للمنتج
-            $baseUnitId = $this->itemRepository->getBaseUnitId($cartItem->itemUnit->item->id);
-
-            // حساب الكمية المطلوبة بوحدة التخزين الأساسية
-            $requestedQtyInBaseUnit = ($baseUnitId !== $selectedUnitId)
-                ? ($cartItem->itemUnit->conversion_factor * $requestedQty)
-                : $requestedQty;
+            //حساب الكمية بالواحدة الاساسية
+            $requestedQtyInBaseUnit = app(OrderService::class)->calculateQuantityInBaseUnit(
+                $itemModel->id,
+                $selectedUnitId,
+                $conversionFactor,
+                $requestedQty
+            );
 
             // تحقق من توفر الكمية
             if ($requestedQtyInBaseUnit > $availableQuantityInBaseUnit) {
                 throw new \Exception(
-                    "الكمية المطلوبة ({$requestedQtyInBaseUnit}) للمنتج '{$cartItem->itemUnit->item->name}' " .
+                    "الكمية المطلوبة ({$requestedQtyInBaseUnit}) للمنتج '{$itemModel->name}' " .
                     "أكبر من الكمية المتاحة ({$availableQuantityInBaseUnit})."
                 );
             }
@@ -110,7 +108,7 @@ class CartItemService{
             // إضافة تفاصيل العنصر للنتيجة
             $details[] = [
                 'cart_item_id' => $cartItem->id,
-                'product' => $cartItem->itemUnit->item->name,
+                'product' => $itemModel->name,
                 'unit' => $cartItem->itemUnit->unit->name,
                 'unit_price' => $unitPrice,
                 'requested_quantity' => $requestedQty,
@@ -135,7 +133,6 @@ class CartItemService{
         $discountAmount = $pointsUsed * $moneyPerPoint;
         $totalAfterDiscount = max($totalBeforeDiscount - $discountAmount, 0);
 
-        // إعادة النتيجة
         return [
             'total_before_discount' => $totalBeforeDiscount,
             'points_used' => $pointsUsed,

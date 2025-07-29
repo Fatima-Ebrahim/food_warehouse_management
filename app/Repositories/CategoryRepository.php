@@ -30,8 +30,6 @@ class CategoryRepository{
         }
         return $leves;
     }
-//    public function update(array $data){
-//        return Category::query()->create($data);
-//    }
+
 
 }

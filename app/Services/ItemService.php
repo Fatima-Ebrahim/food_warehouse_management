@@ -17,37 +17,25 @@ class ItemService{
         $this->itemUniteRepository=$itemUnitRepository;
     }
 
-    public function createItem(array $data): array
+    public function createItem(array $data): Item
     {
         $image = $data['image'] ?? null;
         unset($data['image']);
 
-        try {
-            $item = DB::transaction(function () use ($data, $image) {
-                $item = $this->ItemRepository->create($data);
-                if ($image) {
-                    $imagePath = $image->store('items', 'public');
-                    $item->update(['image' => $imagePath]);
-                }
-                return $item;
-            });
-          $this->createDefaultUnit($item, $data['base_unit_id'], $data['selling_price']);
+        return DB::transaction(function () use ($data, $image) {
+            $item = $this->ItemRepository->create($data);
+            if ($image) {
+                $imagePath = $image->store('items', 'public');
+                $item->update(['image' => $imagePath]);
+            }
 
-            return [
-                'success' => true,
-                'data' => $item,
-                'message' => 'Item created successfully'
-            ];
-
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to create item: ' . $e->getMessage()
-            ];
-        }
-
+            $this->createDefaultSellingUnit($item, $data['base_unit_id'], $data['selling_price']);
+            return $item;
+        });
     }
-    private function createDefaultUnit(Item $item, int $unitId, float $sellingPrice): void
+
+
+    private function createDefaultSellingUnit(Item $item, int $unitId, float $sellingPrice): void
     {
        $this->itemUniteRepository->create([
             'item_id' => $item->id,
@@ -102,5 +90,10 @@ class ItemService{
         return new ItemResource($item);
     }
 
+    public function getImagePath($id)
+    {
+        $request = $this->ItemRepository->getById($id);
+        return $request->image;
+    }
 
 }
