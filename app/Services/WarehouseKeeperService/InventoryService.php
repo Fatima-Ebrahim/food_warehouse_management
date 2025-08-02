@@ -29,10 +29,10 @@ class InventoryService
 
         if ($data['type'] === 'scheduled') {
             $requestData['schedule_frequency'] = $data['schedule_frequency'];
-            $requestData['schedule_erval'] = $data['schedule_erval'];
+            $requestData['schedule_interval'] = $data['schedule_interval'];
             $requestData['scheduled_at'] = Carbon::now()->add(
                 $data['schedule_frequency'],
-                $data['schedule_erval']
+                $data['schedule_interval']
             );
         }
 
@@ -45,7 +45,7 @@ class InventoryService
         return $stocktake;
     }
 
-    public function processStocktakeSubmission( $stocktakeId, array $stocktakeData)
+    /*public function processStocktakeSubmission( $stocktakeId, array $stocktakeData)
     {
         $stocktake = $this->inventoryRepository->findStocktake($stocktakeId);
         if (!$stocktake || $stocktake->status !== 'pending') {
@@ -62,6 +62,45 @@ class InventoryService
             $itemId = $countedItem['item_id'];
             $countedQuantity = (float) $countedItem['counted_quantity'];
             $expectedQuantity = $this->inventoryRepository->getExpectedQuantityForItem($itemId);
+
+            if (abs($expectedQuantity - $countedQuantity) > 0.001) {
+                $itemDetail = $itemsDetails->get($itemId);
+                $discrepancies[] = [
+                    'item_id' => $itemId,
+                    'item_name' => isset($itemDetail->name) ? $itemDetail->name : 'Unknown',
+                    'expected_quantity' => $expectedQuantity,
+                    'counted_quantity' => $countedQuantity,
+                    'discrepancy' => $countedQuantity - $expectedQuantity,
+                ];
+            }
+        }
+
+        $this->inventoryRepository->saveStocktakeDiscrepancies($stocktakeId, $discrepancies);
+        $this->inventoryRepository->update($stocktakeId, ['status' => 'completed', 'completed_at' => now()]);
+        $this->notifyManagers($stocktake);
+
+        return $discrepancies;
+    }*/
+
+    public function processStocktakeSubmission($stocktakeId, array $stocktakeData)
+    {
+        $stocktake = $this->inventoryRepository->findStocktake($stocktakeId);
+        if (!$stocktake || $stocktake->status !== 'pending') {
+            throw new Exception('Stocktake request is not valid or has already been processed.');
+        }
+
+        $this->inventoryRepository->update($stocktakeId, ['status' => 'in_progress']);
+
+        $discrepancies = [];
+        $itemIds = array_column($stocktakeData, 'item_id');
+        $itemsDetails = $this->inventoryRepository->getItemsDetails($itemIds);
+
+        foreach ($stocktakeData as $countedItem) {
+            $itemId = $countedItem['item_id'];
+            $countedQuantity = (float)$countedItem['counted_quantity'];
+            $unitId = $countedItem['unit_id'] ?? null;
+
+            $expectedQuantity = $this->inventoryRepository->getExpectedQuantityForItem($itemId, $unitId);
 
             if (abs($expectedQuantity - $countedQuantity) > 0.001) {
                 $itemDetail = $itemsDetails->get($itemId);

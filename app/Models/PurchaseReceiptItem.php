@@ -46,5 +46,8 @@ class PurchaseReceiptItem extends Model
     {
         return $this->hasMany(BatchStorageLocation::class, 'purchase_receipt_items_id');
     }
-
+    public function itemUnit()
+    {
+        return $this->belongsTo(ItemUnit::class);
+    }
 }
