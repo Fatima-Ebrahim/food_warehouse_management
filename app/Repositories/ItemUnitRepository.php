@@ -33,7 +33,7 @@ class ItemUnitRepository{
             ->first();
     }
 
-    public function getAllItemUnitBuItemId($item_id){
+    public function getAllItemUnitsById($item_id){
         return ItemUnit::query()->where('item_id',$item_id)->get();
     }
 

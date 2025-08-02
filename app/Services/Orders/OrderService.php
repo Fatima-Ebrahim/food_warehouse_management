@@ -50,10 +50,10 @@ class OrderService{
         return DB::transaction(function () use ($userId, $paymentType, $items, $pointsUsed) {
             $cart = User::findOrFail($userId)->cart;
 
-            // تحقق من رصيد النقاط قبل إنشاء الطلب
+
             $availablePoints = $this->customerRepository->getPoints($userId);
             if ($pointsUsed > $availablePoints) {
-                throw new \Exception("ليس لديك عدد كافٍ من النقاط. المتاح: {$availablePoints}");
+                throw new \Exception("you do not have enough points , the number exist {$availablePoints}");
             }
 
             // حساب السعر
@@ -110,7 +110,6 @@ class OrderService{
                     'reason' => 'خصم نقاط عند تأكيد الطلب',
                 ]);
             }
-
             return $order;
         });
 

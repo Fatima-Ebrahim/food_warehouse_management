@@ -11,14 +11,9 @@ class UnitService{
         $this->unitRepository = $unitRepository;
     }
 
-    public function createUnit(array $data): array
+    public function createUnit(array $data)
     {
-            $unit = $this->unitRepository->create($data);
-            return [
-                'data' => $unit,
-                'message' => 'Unit created successfully'
-            ];
-
+            return  $this->unitRepository->create($data);
     }
     public function getUnits()
     {

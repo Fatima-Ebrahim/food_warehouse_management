@@ -18,13 +18,15 @@ class CartItemController extends Controller
 
     public function index()
     {
-        $items = $this->service->getUserCartItems();
+        $user = auth()->user();
+        $items = $this->service->getUserCartItems($user);
         return response()->json($items);
     }
 
     public function store(CartItemRequest $request)
     {
-        $item = $this->service->addToCart( $request->validated());
+        $user=auth()->user();
+        $item = $this->service->addToCart( $request->validated() ,$user);
         return response()->json($item, 201);
     }
 

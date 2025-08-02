@@ -46,10 +46,11 @@ class ItemUnitService
             ['success' => false, 'message' => 'Item unit not found'];
 
     }
-    public function getAllItemUnit($itemId): array
+
+    public function getAllItemUnits($itemId): array
     {
 
-        $itemUnit = $this->itemUnitRepository->getAllItemUnitBuItemId($itemId);
+        $itemUnit = $this->itemUnitRepository->getAllItemUnitsById($itemId);
 
         return $itemUnit ?
             ['success' => true, 'data' => $itemUnit] :
