@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 
 use App\Http\Requests\ConfirmOrderRequest;
 use App\Services\Orders\OrderService;
+use Illuminate\Support\Facades\Storage;
 
 class  OrderController extends Controller
 {
@@ -41,7 +42,22 @@ class  OrderController extends Controller
     }
 
 
+    public function getOrderDetails($orderId){
+       $order= $this->orderService->getOrderDetails($orderId);
+       return response()->json($order);
+    }
+
+    public function getOrderQr($orderId){
+
+            $path = $this->orderService->getOrderQrPath($orderId);
+
+            if (!Storage::disk('public')->exists($path)) {
+                return response()->json(['message' => 'File not found'], 404);
+            }
+
+            return response()->file(storage_path("app/public/{$path}"));
 
 
+    }
 
 }

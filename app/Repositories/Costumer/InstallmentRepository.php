@@ -1,5 +1,5 @@
 <?php
-namespace App\Repositories\Orders;
+namespace App\Repositories\Costumer;
 
 use App\Models\Installment;
 use App\Models\User;

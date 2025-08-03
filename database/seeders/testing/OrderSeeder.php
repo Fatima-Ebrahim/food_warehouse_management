@@ -16,7 +16,7 @@ class OrderSeeder extends Seeder
             Order::create([
                 'cart_id' => $cart->id,
                 'payment_type' => ['cash', 'installment'][rand(0, 1)],
-                'payment_status' => ['confirmed', 'paid', 'partially_paid'][rand(0, 2)],
+                'status' => ['pending','confirmed', 'paid', 'partially_paid'][rand(0, 2)],
                 'total_price' => $total,
                 'used_points' => $usedPoints,
                 'final_price' => $final,

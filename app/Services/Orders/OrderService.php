@@ -2,20 +2,19 @@
 namespace App\Services\Orders;
 
 
-use App\Models\Cart;
-use App\Models\PointTransaction;
+use App\Models\Order;
 use App\Models\User;
 use App\Repositories\CustomerRepository;
 use App\Repositories\ItemRepository;
-use App\Repositories\ItemUnitRepository;
 use App\Repositories\SettingsRepository;
-use App\Repositories\Orders\CartItemRepository;
-use App\Repositories\Orders\CartRepository;
-use App\Repositories\Orders\OrderItemRepository;
-use App\Repositories\Orders\OrderRepository;
-use App\Repositories\Orders\PointTransactionRepository;
-use Carbon\Carbon;
+use App\Repositories\Costumer\CartItemRepository;
+use App\Repositories\Costumer\OrderItemRepository;
+use App\Repositories\Costumer\OrderRepository;
+use App\Repositories\Costumer\PointTransactionRepository;
 use Illuminate\Support\Facades\DB;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+use Illuminate\Support\Facades\Storage;
 
 class OrderService{
 
@@ -26,7 +25,8 @@ class OrderService{
     protected SettingsRepository $settingsRepository;
     protected ItemRepository $itemRepository;
     protected PointTransactionRepository $pointTransactionRepository ;
-
+    protected CartItemService $cartItemService;
+    protected InstallmentService $installmentService;
     public function __construct(
         OrderRepository $orderRepository,
         OrderItemRepository $orderItemRepository,
@@ -34,7 +34,10 @@ class OrderService{
         CustomerRepository $customerRepository,
         SettingsRepository $settingsRepository,
         ItemRepository $itemRepository ,
-        PointTransactionRepository $pointTransactionRepository
+        PointTransactionRepository $pointTransactionRepository ,
+        CartItemService $cartItemService ,
+        InstallmentService $installmentService,
+
     ) {
         $this->orderRepository = $orderRepository;
         $this->orderItemRepository = $orderItemRepository;
@@ -43,6 +46,8 @@ class OrderService{
         $this->settingsRepository = $settingsRepository;
         $this->itemRepository = $itemRepository;
         $this->pointTransactionRepository =$pointTransactionRepository;
+        $this->cartItemService =$cartItemService;
+        $this->installmentService=$installmentService;
     }
 
     public function confirmOrder(int $userId, string $paymentType, array $items, ?int $pointsUsed = 0)
@@ -55,26 +60,36 @@ class OrderService{
             if ($pointsUsed > $availablePoints) {
                 throw new \Exception("you do not have enough points , the number exist {$availablePoints}");
             }
-
             // حساب السعر
-            $priceData = app(CartItemService::class)
-                ->calculateSelectedItemsPrice($items, $userId, $pointsUsed);
+            $priceData = $this->cartItemService->calculateSelectedItemsPrice($items, $userId, $pointsUsed);
+
+            $status = 'confirmed';
+            if ($paymentType === 'installment') {
+                $status = $this->installmentService
+                    ->validateInstallment($userId, $priceData['total_after_discount']);
+            }
+
 
             // إنشاء الطلب
             $order = $this->orderRepository->create([
                 'cart_id' => $cart->id,
                 'payment_type' => $paymentType,
+                'status'=>$status,
                 'total_price' => $priceData['total_before_discount'],
                 'final_price' => $priceData['total_after_discount'],
                 'used_points' => $pointsUsed ?? 0,
-            ]);
+               ]);
 
-            foreach ($priceData['items'] as $itemData) {
+
+            if($status==="confirmed"){
+                $this->generateQr($order ,$userId);
+            }
+             foreach ($priceData['items'] as $itemData) {
                 $cartItem = $this->cartItemRepository->getCartItemForUser($itemData['cart_item_id'], $userId);
                 $itemUnit = $cartItem->itemUnit;
                 $product = $itemUnit->item;
 
-                // حساب الكمية بالوحدة الأساسية
+
                 $qtyInBase = $this->calculateQuantityInBaseUnit(
                     $product->id,
                     $itemUnit->unit->id,
@@ -92,7 +107,6 @@ class OrderService{
                     'quantity' => $itemData['requested_quantity'],
                     'price' => $itemUnit->selling_price,
                 ]);
-
                 // حذف من السلة
                 $cartItem->delete();
             }
@@ -130,4 +144,35 @@ class OrderService{
             ? $requestedQty * $conversionFactor
             : $requestedQty;
     }
+
+    public function generateQr(Order $order, $userId){
+        $qrData = json_encode([
+            'order_id' => $order->id,
+            'user_id' => $userId,
+            'timestamp' => now()->timestamp,
+        ]);
+
+        $qrCode = new QrCode($qrData);
+        $qrCode->setSize(300);
+
+        $writer = new PngWriter();
+        $result = $writer->write($qrCode);
+
+        $path = "qrcodes/order_{$order->id}.png";
+        Storage::disk('public')->put($path, $result->getString());
+        $order->update(['qr_code_path' => $path]);
+    }
+
+    public function getOrderDetails($orderId)
+    {
+        return $this->orderRepository->get($orderId);
+    }
+
+    public function getOrderQrPath($orderId)
+    {
+      return $this->orderRepository->get($orderId)->qr_code_path;
+    }
+
+
+
 }

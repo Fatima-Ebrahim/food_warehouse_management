@@ -14,9 +14,12 @@ class PointsController extends Controller
         $this->pointsService=$pointsService;
     }
     public function getPoints(){
-        return response()->json(['points'=>$this->pointsService->getPoints()] );
+        $id=auth()->user()->id;
+        return response()->json(['points'=>$this->pointsService->getPoints($id)] );
     }
     public function addPoints(){
-        return $this->pointsService->addPoints(4);
+        ///todo "use the api on real conditions"
+        $id=auth()->user()->id;
+         $this->pointsService->addPoints(4, $id);
     }
 }

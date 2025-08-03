@@ -7,7 +7,7 @@ use App\Models\CartItem;
 use App\Repositories\CustomerRepository;
 use App\Repositories\ItemRepository;
 use App\Repositories\SettingsRepository;
-use App\Repositories\Orders\CartItemRepository;
+use App\Repositories\Costumer\CartItemRepository;
 
 class CartItemService{
 

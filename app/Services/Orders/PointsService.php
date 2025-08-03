@@ -2,30 +2,33 @@
 
 namespace App\Services\Orders;
 
-use App\Repositories\Orders\OrderRepository;
-use App\Repositories\Orders\PointsRepository;
+use App\Repositories\Costumer\OrderRepository;
+use App\Repositories\Costumer\PointsRepository;
+use App\Repositories\CustomerRepository;
 use Illuminate\Support\Facades\DB;
 use App\Models\PurchaseReceiptItem;
 
 class PointsService
 {
-    protected $pointsRepository;
-    public function __construct(PointsRepository $repository)
+    protected $customerRepository;
+    public function __construct(CustomerRepository $repository)
     {
-        $this->pointsRepository=$repository;
+        $this->customerRepository=$repository;
     }
 
-    public function getPoints()
+    public function getPoints($userId)
     {
-        $id=auth()->user()->id;
-        return $this->pointsRepository->get($id);
+
+        return $this->customerRepository->getPoints($userId);
     }
-    public function addPoints($numberOfPoints)
+    public function addPoints($numberOfPoints, $userId)
     {
-        $id=auth()->user()->id;
-        $currentNumber=$this->pointsRepository->get($id);
-        $finalNumber= $currentNumber +$numberOfPoints;
-        return $this->pointsRepository->update($id,$finalNumber);
+        $this->customerRepository->addPoints($userId ,$numberOfPoints);
     }
+
+    public function subPoints($numberOfPoints, $userId){
+      $this->customerRepository->subtractPoints($userId ,$numberOfPoints);
+    }
+
 
 }

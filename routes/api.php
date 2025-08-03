@@ -13,6 +13,7 @@ use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Orders\CartItemController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Orders\PointsController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WarehouseKeeper\InventoryController;
 use App\Http\Controllers\WarehouseKeeper\ItemStorageController;
 use App\Http\Controllers\WarehouseKeeper\PurchaseOrderController;
@@ -28,7 +29,7 @@ Route::middleware('auth:api')->group(function () {
 });
 //registration
 
-Route::get('showAll', [RegisterRequestController::class, 'index']);
+Route::get('showAll', [RegisterRequestController::class, 'getAllRegistration']);
 Route::post('registerRequests', [RegisterRequestController::class, 'store']);
 Route::get('showById/{id}', [RegisterRequestController::class, 'show']);
 Route::get('showCertificate/{id}/certificate', [RegisterRequestController::class, 'showCertificate']);
@@ -64,6 +65,7 @@ Route::put('/updatePointsSettings', [SettingsController::class, 'updatePoints'])
 //order
 Route::put('/updateOrdersSettings', [SettingsController::class, 'updateOrders']);
 Route::get('/showOrdersSettings', [SettingsController::class, 'indexOrders']);
+Route::get('showOrderQr/{orderId}',[OrderController::class,'getOrderQr']);
 //Installments
 Route::put('/updateInstallmentsSettings', [SettingsController::class, 'updateInstallments']);
 Route::get('/showInstallmentsSettings', [SettingsController::class, 'indexInstallments']);
@@ -81,8 +83,20 @@ Route::middleware('auth:api')->group(function () {
     Route::post('preview-price', [CartItemController::class, 'previewSelectedItemsPrice']);
 //orders---------------------
     Route::post('/orders/confirm', [OrderController::class, 'confirm']);
-    ///todo
-    Route::get('paymentMethod',[]);
+    Route::get('getOrderDetails/{orderId}',[OrderController::class,'getOrderDetails']);
+    ///todo apis ofr orders
+    Route::get('paymentMethods',[PaymentController::class,'paymentMethods']);
+    Route::post('payCash');
+    Route::post('PayByInstallment');
+    ///todo additional orders
+    Route::post('addAdditionalOrder');
+    Route::get('showAdditionalOrders');
+    Route::get('showAdditionalOrderDetails/{id}');
+    Route::put('updateAdditionalOrderStatus/{id}');
+    ///todo search
+    Route::post('search');
+
+
 
 });
 

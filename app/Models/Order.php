@@ -9,10 +9,13 @@ class Order extends Model
     protected $fillable = [
         'cart_id',
         'payment_type',
-        'payment_status',
+        'status',
         'final_price',
         'total_price',
-        'used_points'
+        'used_points',
+        'qr_code_path',
+
+
         ];
 
     protected $casts = [
@@ -43,6 +46,8 @@ class Order extends Model
     {
         return $this->hasMany(PointTransaction::class,'order_id');
     }
+
+
 
 
 }
