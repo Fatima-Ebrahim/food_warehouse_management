@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\WarehouseKeeper;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\WarehouseKeeperRequests\InventoryRequests\StoreStocktakeRequest;
+use App\Http\Requests\WarehouseKeeperRequests\InventoryRequests\SubmitStocktakeRequest;
 use App\Services\WarehouseKeeperService\InventoryService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -17,33 +19,20 @@ class InventoryController extends Controller
         $this->inventoryService = $inventoryService;
     }
 
-    public function requestStocktake(Request $request)
+    public function requestStocktake(StoreStocktakeRequest $request)
     {
-        $validated = $request->validate([
-            'type' => 'required|in:immediate,scheduled',
-            'notes' => 'nullable|string',
-            'schedule_frequency' => 'required_if:type,scheduled|in:days,weeks,months',
-            'schedule_interval' => 'required_if:type,scheduled|integer|min:1',
-        ]);
-
         try {
-            $stocktake = $this->inventoryService->createStocktakeRequest($validated);
+            $stocktake = $this->inventoryService->createStocktakeRequest($request->validated());
             return response()->json(['success' => true, 'message' => 'Stocktake request created successfully.', 'data' => $stocktake], 201);
         } catch (Exception $e) {
             return response()->json(['success' => false, 'message' => 'Failed to create request: ' . $e->getMessage()], 400);
         }
     }
 
-    public function submitStocktake(Request $request, int $stocktakeId)
+    public function submitStocktake(SubmitStocktakeRequest $request, int $stocktakeId)
     {
-        $validated = $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.item_id' => 'required|integer|exists:items,id',
-            'items.*.counted_quantity' => 'required|numeric|min:0'
-        ]);
-
         try {
-            $discrepancies = $this->inventoryService->processStocktakeSubmission($stocktakeId, $validated['items']);
+            $discrepancies = $this->inventoryService->processStocktakeSubmission($stocktakeId, $request->validated()['items']);
             return response()->json([
                 'success' => true,
                 'data' => $discrepancies,
@@ -88,7 +77,7 @@ class InventoryController extends Controller
         }
     }
 
-    public function cancelScheduledStocktake(int $id)
+    public function cancelScheduledStocktake( $id)
     {
         try {
             $this->inventoryService->cancelScheduledStocktake($id);

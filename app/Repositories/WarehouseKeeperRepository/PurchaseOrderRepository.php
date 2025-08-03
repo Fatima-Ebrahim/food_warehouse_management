@@ -25,6 +25,7 @@ class PurchaseOrderRepository
                     'item_id' => $item['item_id'],
                     'unit_id' => $item['unit_id'],
                     'quantity' => $quantity,
+                    'available_quantity' => $quantity,
                     'price' => $item['price'],
                     'total_price' => $quantity * $item['price'],
                     'unit_weight' => $unitWeight,

@@ -27,7 +27,7 @@ class DispatchScheduledStocktakes extends Command
             return;
         }
 
-        $keepers = User::query()->where('role', 'warehouse_keeper')->get();
+        $keepers = User::query()->where('user_type', 'warehouse_keeper')->get();
 
         foreach ($stocktakes as $stocktake) {
             foreach ($keepers as $keeper) {

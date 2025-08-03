@@ -44,3 +44,6 @@ storage/oauth-private.key
 *.bak
 *.tmp
 *.swp
+
+#helper
+/helper
