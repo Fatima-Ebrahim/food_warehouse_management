@@ -18,6 +18,7 @@ class CartItemController extends Controller
 
     public function index()
     {
+
         $user = auth()->user();
         $items = $this->service->getUserCartItems($user);
         return response()->json($items);

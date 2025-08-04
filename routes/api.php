@@ -65,7 +65,7 @@ Route::put('/updatePointsSettings', [SettingsController::class, 'updatePoints'])
 //order
 Route::put('/updateOrdersSettings', [SettingsController::class, 'updateOrders']);
 Route::get('/showOrdersSettings', [SettingsController::class, 'indexOrders']);
-Route::get('showOrderQr/{orderId}',[OrderController::class,'getOrderQr']);
+
 //Installments
 Route::put('/updateInstallmentsSettings', [SettingsController::class, 'updateInstallments']);
 Route::get('/showInstallmentsSettings', [SettingsController::class, 'indexInstallments']);
@@ -84,6 +84,9 @@ Route::middleware('auth:api')->group(function () {
 //orders---------------------
     Route::post('/orders/confirm', [OrderController::class, 'confirm']);
     Route::get('getOrderDetails/{orderId}',[OrderController::class,'getOrderDetails']);
+    Route::post('scanOrder', [OrderController::class, 'scanQr']);
+    Route::get('showOrderQr/{orderId}',[OrderController::class,'getOrderQr']);
+
     ///todo apis ofr orders
     Route::get('paymentMethods',[PaymentController::class,'paymentMethods']);
     Route::post('payCash');
@@ -194,4 +197,7 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/{notificationId}/mark-as-seen', [NotificationController::class, 'markAsSeen']);
     });
 
+});
+Route::get('/test', function () {
+    return 'ok';
 });

@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Orders;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\ConfirmOrderRequest;
+use App\Http\Requests\QrScannerRequest;
 use App\Services\Orders\OrderService;
 use Illuminate\Support\Facades\Storage;
 
 class  OrderController extends Controller
 {
-    protected $orderService;
-    public function __construct( OrderService $service) {
-        $this->orderService= $service;
+
+    public function __construct( protected  OrderService $orderService) {
+
     }
 
     public function confirm(ConfirmOrderRequest $request)
@@ -56,8 +57,17 @@ class  OrderController extends Controller
             }
 
             return response()->file(storage_path("app/public/{$path}"));
-
-
     }
+    public function scanQr(QrScannerRequest $request)
+    {
+        try {
+            $result = $this->orderService->processQr($request->qr_data);
+            return response()->json(['status' => true, 'data' => $result]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+
 
 }

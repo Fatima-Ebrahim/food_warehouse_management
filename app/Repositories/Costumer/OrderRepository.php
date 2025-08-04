@@ -21,6 +21,11 @@ class OrderRepository{
         return Order::findOrFail($id);
     }
 
+    public function getWithItems(int $id): Order
+    {
+        return Order::with(['orderItems.itemUnit.item'])->findOrFail($id);
+    }
+
     public function updateQRPath($path , $orderId){
         Order::query()->find($orderId)->update(['qr_code_path'=>$path]);
     }
