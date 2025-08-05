@@ -32,14 +32,6 @@ class Order extends Model
         return $this->hasMany(OrderItem::class,'order_id');
     }
 
-    public function isPaid()
-    {
-        return $this->payment_status === 'paid';
-    }
-    public function isPartiallyPaid()
-    {
-        return $this->payment_status === 'partially_paid';
-    }
 
     public function installments()
     {

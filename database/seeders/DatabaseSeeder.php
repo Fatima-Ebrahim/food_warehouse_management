@@ -37,17 +37,17 @@ class DatabaseSeeder extends Seeder
             ItemSeeder::class,
             ItemUnitSeeder::class,
         ]);
-        //$this->call([
-         //   UserSeeder::class,
-          //  CartSeeder::class,
-           // CartItemSeeder::class,
-           // OrderSeeder::class,
-           // OrderItemSeeder::class,
-           // OrderBatchDetailsSeeder::class,
-           // InstallmentsSeeder::class,
-           // CustomerSeeder::class,
-            //PointTransactionsSeeder::class,
-       // ]);
+        $this->call([
+//            UserSeeder::class,
+//            CartSeeder::class,
+//            CartItemSeeder::class,
+//            OrderSeeder::class,
+//            OrderItemSeeder::class,
+//            OrderBatchDetailsSeeder::class,
+//            InstallmentsSeeder::class,
+//            CustomerSeeder::class,
+//            PointTransactionsSeeder::class,
+        ]);
 
 
         // User::factory(10)->create();

@@ -58,6 +58,7 @@ class  OrderController extends Controller
 
             return response()->file(storage_path("app/public/{$path}"));
     }
+
     public function scanQr(QrScannerRequest $request)
     {
         try {

@@ -29,6 +29,17 @@ class OrderRepository{
     public function updateQRPath($path , $orderId){
         Order::query()->find($orderId)->update(['qr_code_path'=>$path]);
     }
+
+
+    public function isPaid(Order $order): bool
+    {
+        return $order->status === 'paid';
+    }
+
+    public function isPartiallyPaid(Order $order): bool
+    {
+        return $order->status === 'partially_paid';
+    }
     //    public function updateStatus(CartItem $cartItem, array $data)
 //    {
 //        $cartItem->update($data);

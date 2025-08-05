@@ -193,7 +193,7 @@ class OrderService{
 
         $order = $this->orderRepository->getWithItems($decoded['order_id']);
 
-        if ($order->isPaid()||$order->isPartiallyPaid()) {
+        if ($this->orderRepository->isPaid($order)||$this->orderRepository->isPartiallyPaid($order) ) {
             throw new \Exception("تم تأكيد استلام هذا الطلب مسبقاً.");
         }
 
