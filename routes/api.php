@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\LowStockReportController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\WarehouseDesignController;
 use App\Http\Controllers\Auth\AuthController;
@@ -12,8 +11,11 @@ use App\Http\Controllers\Customer\SettingsController;
 use App\Http\Controllers\Customer\UnitContoller;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Orders\CartItemController;
+use App\Http\Controllers\Orders\InstallmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Orders\PointsController;
+use App\Http\Controllers\Orders\QrController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WarehouseKeeper\InventoryController;
 use App\Http\Controllers\WarehouseKeeper\ItemStorageController;
 use App\Http\Controllers\WarehouseKeeper\PurchaseOrderController;
@@ -29,7 +31,7 @@ Route::middleware('auth:api')->group(function () {
 });
 //registration
 
-Route::get('showAll', [RegisterRequestController::class, 'index']);
+Route::get('showAll', [RegisterRequestController::class, 'getAllRegistration']);
 Route::post('registerRequests', [RegisterRequestController::class, 'store']);
 Route::get('showById/{id}', [RegisterRequestController::class, 'show']);
 Route::get('showCertificate/{id}/certificate', [RegisterRequestController::class, 'showCertificate']);
@@ -65,6 +67,7 @@ Route::put('/updatePointsSettings', [SettingsController::class, 'updatePoints'])
 //order
 Route::put('/updateOrdersSettings', [SettingsController::class, 'updateOrders']);
 Route::get('/showOrdersSettings', [SettingsController::class, 'indexOrders']);
+
 //Installments
 Route::put('/updateInstallmentsSettings', [SettingsController::class, 'updateInstallments']);
 Route::get('/showInstallmentsSettings', [SettingsController::class, 'indexInstallments']);
@@ -82,10 +85,31 @@ Route::middleware('auth:api')->group(function () {
     Route::post('preview-price', [CartItemController::class, 'previewSelectedItemsPrice']);
 //orders---------------------
     Route::post('/orders/confirm', [OrderController::class, 'confirm']);
-    ///todo
-    Route::get('paymentMethod', []);
+    Route::get('getOrderDetails/{orderId}',[OrderController::class,'getOrderDetails']);
+    Route::get('showOrderQr/{orderId}',[OrderController::class,'getOrderQr']);
+    Route::get('getPendedOrders',[OrderController::class,'getPendingOrders']);
+    Route::put('updateOrderStatus',[OrderController::class,'updateOrderStatus']);
+    Route::post('receiveOrder', [OrderController::class, 'receiveOrder']);
+//    installment
+    Route::get('getOrderInstallmentPlan/{orderId}',[InstallmentController::class,'getOrderInstallmentPlan']);
+    Route::get('getOrderInstallmentsBatchs/{orderId}',[InstallmentController::class,'getOrderInstallmentsBatchs']);
+    Route::get('getUserUnpaidInstallments',[InstallmentController::class,'getUserUnpaidInstallments']);
+    Route::post('payNextInstallment',[InstallmentController::class,'payNextInstallment']);
+
+//payment methods
+    Route::get('paymentMethods',[PaymentController::class,'paymentMethods']);
+    ///todo additional orders
+    Route::post('addAdditionalOrder');
+    Route::get('showAdditionalOrders');
+    Route::get('showAdditionalOrderDetails/{id}');
+    Route::put('updateAdditionalOrderStatus/{id}');
+    ///todo search
+    Route::post('search');
+
+
 
 });
+
 
 //--------------------------api  fatima
 Route::middleware('auth:api')->group(function () {
@@ -171,11 +195,6 @@ Route::middleware('auth:api')->group(function () {
         Route::get('reports/{id}', [InventoryController::class, 'getStocktakeReportDetails']);
         Route::put('scheduled-stocktake/{id}', [InventoryController::class, 'updateScheduledStocktake']);
         Route::delete('scheduled-stocktake/{id}', [InventoryController::class, 'cancelScheduledStocktake']);
-        // Scheduled Stocktakes Management
-        Route::get('/scheduled-stocktakes', [InventoryController::class, 'getScheduledStocktakes']);
-        Route::put('scheduled-stocktake/{id}', [InventoryController::class, 'updateScheduledStocktake']);
-        Route::delete('scheduled-stocktake/{id}', [InventoryController::class, 'cancelScheduledStocktake']);
-
     });
 
     // --- Notifications ---
@@ -185,7 +204,8 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/store-device-token', [NotificationController::class, 'storeUserDeviceToken']);
         Route::put('/{notificationId}/mark-as-seen', [NotificationController::class, 'markAsSeen']);
     });
-     //    low stock report
-    Route::get('/reports/low-stock', [LowStockReportController::class, 'getReport']);
 
+});
+Route::get('/test', function () {
+    return 'ok';
 });

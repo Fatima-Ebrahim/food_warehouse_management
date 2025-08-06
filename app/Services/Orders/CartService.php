@@ -3,7 +3,7 @@ namespace App\Services\Orders;
 
 use App\Models\Item;
 use App\Models\ItemUnit;
-use App\Repositories\Orders\CartRepository;
+use App\Repositories\Costumer\CartRepository;
 
 class CartService{
 

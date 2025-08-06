@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('installments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->decimal('amount', 10, 2);
+            $table->decimal('paid_amount', 10, 2)->nullable();
+            $table->decimal('remaining_amount', 10, 2);
             $table->date('due_date');
-            $table->date('paid_at')->nullable();
+            $table->timestamp('paid_at')->nullable();
             $table->string('note')->nullable();
+            $table->enum('status', ['pending', 'paid', 'late'])->default('pending');
             $table->timestamps();
         });
 

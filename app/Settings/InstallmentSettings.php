@@ -22,4 +22,6 @@ class InstallmentSettings extends Settings
     {
         return 'Installments';
     }
+
+
 }

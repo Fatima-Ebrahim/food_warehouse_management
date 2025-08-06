@@ -29,17 +29,11 @@ class CustomerRepository{
         }
     }
 
-    /**
-     * خصم عدد من النقاط
-     */
     public function subtractPoints(int $userId, int $points): void
     {
         $this->updatePoints($userId, $points, 'subtract');
     }
 
-    /**
-     * إضافة عدد من النقاط
-     */
     public function addPoints(int $userId, int $points): void
     {
         $this->updatePoints($userId, $points, 'add');

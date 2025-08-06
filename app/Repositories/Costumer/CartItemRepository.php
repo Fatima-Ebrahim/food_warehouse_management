@@ -1,5 +1,5 @@
 <?php
-namespace App\Repositories\Orders;
+namespace App\Repositories\Costumer;
 
 use App\Models\CartItem;
 
@@ -31,10 +31,9 @@ class CartItemRepository{
         return CartItem::findOrFail($id);
     }
 
-    public function getCartItemForUser(int $cartItemId, int $userId): CartItem
+    public function getCartItemForUser(int $cartItemId, int $userId)
     {
         return CartItem::with(['itemUnit.item', 'itemUnit.unit'])
-
             ->where('id', $cartItemId)
             ->whereHas('cart', function ($q) use ($userId) {
                 $q->where('user_id', $userId);
@@ -46,5 +45,15 @@ class CartItemRepository{
         return $cart->cartItems()
             ->where('item_unit_id', $itemUnitId)
             ->exists();
+    }
+
+    public function getCartItemForUserWithRelations(int $cartItemId, int $userId, array $relations): CartItem
+    {
+        return CartItem::with($relations)
+            ->where('id', $cartItemId)
+            ->whereHas('cart', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->firstOrFail();
     }
 }

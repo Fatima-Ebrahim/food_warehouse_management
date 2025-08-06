@@ -1,5 +1,5 @@
 <?php
-namespace App\Repositories\Orders;
+namespace App\Repositories\Costumer;
 use App\Models\Cart;
 use App\Models\Item;
 use App\Models\ItemUnit;

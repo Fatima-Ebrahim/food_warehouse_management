@@ -24,7 +24,7 @@ class RegisterRequestController extends Controller
             + ['commercial_certificate' => $request->file('commercial_certificate')]);
         return response()->json($item, 201);
     }
-    public function index()
+    public function getAllRegistration()
     {
         return response()->json($this->service->getAll());
     }

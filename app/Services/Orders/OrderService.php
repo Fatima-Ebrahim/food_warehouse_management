@@ -2,49 +2,31 @@
 namespace App\Services\Orders;
 
 
-use App\Models\Cart;
-use App\Models\PointTransaction;
+use App\Http\Resources\OrderDetailsResource;
+use App\Models\Order;
 use App\Models\User;
 use App\Repositories\CustomerRepository;
 use App\Repositories\ItemRepository;
-use App\Repositories\ItemUnitRepository;
 use App\Repositories\SettingsRepository;
-use App\Repositories\Orders\CartItemRepository;
-use App\Repositories\Orders\CartRepository;
-use App\Repositories\Orders\OrderItemRepository;
-use App\Repositories\Orders\OrderRepository;
-use App\Repositories\Orders\PointTransactionRepository;
-use Carbon\Carbon;
+use App\Repositories\Costumer\CartItemRepository;
+use App\Repositories\Costumer\OrderItemRepository;
+use App\Repositories\Costumer\OrderRepository;
+use App\Repositories\Costumer\PointTransactionRepository;
 use Illuminate\Support\Facades\DB;
 
 class OrderService{
 
-    protected OrderRepository $orderRepository;
-    protected OrderItemRepository $orderItemRepository;
-    protected CartItemRepository $cartItemRepository;
-    protected CustomerRepository $customerRepository;
-    protected SettingsRepository $settingsRepository;
-    protected ItemRepository $itemRepository;
-    protected PointTransactionRepository $pointTransactionRepository ;
 
     public function __construct(
-        OrderRepository $orderRepository,
-        OrderItemRepository $orderItemRepository,
-        CartItemRepository $cartItemRepository,
-        CustomerRepository $customerRepository,
-        SettingsRepository $settingsRepository,
-        ItemRepository $itemRepository ,
-        PointTransactionRepository $pointTransactionRepository
-    ) {
-        $this->orderRepository = $orderRepository;
-        $this->orderItemRepository = $orderItemRepository;
-        $this->cartItemRepository = $cartItemRepository;
-        $this->customerRepository = $customerRepository;
-        $this->settingsRepository = $settingsRepository;
-        $this->itemRepository = $itemRepository;
-        $this->pointTransactionRepository =$pointTransactionRepository;
-    }
+       protected OrderRepository $orderRepository,
+       protected OrderItemRepository $orderItemRepository,
+       protected CartItemRepository $cartItemRepository,
+       protected  CustomerRepository $customerRepository,
+       protected  SettingsRepository $settingsRepository,
+       protected ItemRepository $itemRepository ,
+       protected PointTransactionRepository $pointTransactionRepository ,
 
+    ) {}
     public function confirmOrder(int $userId, string $paymentType, array $items, ?int $pointsUsed = 0)
     {
         return DB::transaction(function () use ($userId, $paymentType, $items, $pointsUsed) {
@@ -55,26 +37,36 @@ class OrderService{
             if ($pointsUsed > $availablePoints) {
                 throw new \Exception("you do not have enough points , the number exist {$availablePoints}");
             }
-
             // حساب السعر
-            $priceData = app(CartItemService::class)
-                ->calculateSelectedItemsPrice($items, $userId, $pointsUsed);
+            $priceData = app(CartItemService::class)->calculateSelectedItemsPrice($items, $userId, $pointsUsed);
+
+            $status = 'confirmed';
+            if ($paymentType === 'installment') {
+                $status = app(InstallmentService::class)
+                    ->validateInstallment($userId, $priceData['total_after_discount']);
+            }
+
 
             // إنشاء الطلب
             $order = $this->orderRepository->create([
                 'cart_id' => $cart->id,
                 'payment_type' => $paymentType,
+                'status'=>$status,
                 'total_price' => $priceData['total_before_discount'],
                 'final_price' => $priceData['total_after_discount'],
                 'used_points' => $pointsUsed ?? 0,
-            ]);
+               ]);
 
-            foreach ($priceData['items'] as $itemData) {
+
+            if($status==="confirmed"){
+               app(QrService::class)->generateQr($order ,$userId);
+            }
+             foreach ($priceData['items'] as $itemData) {
                 $cartItem = $this->cartItemRepository->getCartItemForUser($itemData['cart_item_id'], $userId);
                 $itemUnit = $cartItem->itemUnit;
                 $product = $itemUnit->item;
 
-                // حساب الكمية بالوحدة الأساسية
+
                 $qtyInBase = $this->calculateQuantityInBaseUnit(
                     $product->id,
                     $itemUnit->unit->id,
@@ -92,7 +84,6 @@ class OrderService{
                     'quantity' => $itemData['requested_quantity'],
                     'price' => $itemUnit->selling_price,
                 ]);
-
                 // حذف من السلة
                 $cartItem->delete();
             }
@@ -110,6 +101,7 @@ class OrderService{
                     'reason' => 'خصم نقاط عند تأكيد الطلب',
                 ]);
             }
+
             return $order;
         });
 
@@ -119,10 +111,6 @@ class OrderService{
         $this->orderRepository->delete($id);
     }
 
-    public function updatePayementStatus(array $data){
-
-    }
-
     public function calculateQuantityInBaseUnit(int $itemId, int $selectedUnitId, float $conversionFactor, float $requestedQty): float
     {
         $baseUnitId = $this->itemRepository->getBaseUnitId($itemId);
@@ -130,4 +118,77 @@ class OrderService{
             ? $requestedQty * $conversionFactor
             : $requestedQty;
     }
+
+    public function getOrderDetails($orderId)
+    {
+        return new OrderDetailsResource($this->orderRepository->get($orderId)) ;
+    }
+
+    public function getOrderQrPath($orderId)
+    {
+      $order= $this->orderRepository->get($orderId);
+      return $order->qr_code_path;
+    }
+
+    public function getPendingOrders()
+    {
+        return $this->orderRepository->getAllPendingOrders();
+    }
+
+    public function updateOrderStatus($order_id ,$status)
+    {
+            //todo اضافة اشعار لارسال حالة الطلب
+        $order = $this->orderRepository->getWithItems($order_id);
+
+        if ($status=== 'rejected') {
+            DB::transaction(function () use ($order) {
+                foreach ($order->orderItems as $orderItem) {
+                    if (!$orderItem->itemUnit || !$orderItem->itemUnit->item) {
+                        throw new \Exception('بيانات العنصر غير مكتملة');
+                    }
+                    $item = $orderItem->itemUnit->item;
+                    $item->increment('Total_Available_Quantity', $orderItem->quantity);
+                }
+
+            });
+        }
+        $this->orderRepository->updateStatus($order, $status);
+        return $order;
+    }
+
+    public function receiveOrder(array $Data): array
+    {
+
+        $decoded = json_decode($Data['qr_data'], true);
+
+        if (!$decoded || !isset($decoded['order_id'], $decoded['user_id'])) {
+            throw new \Exception('QR code غير صالح.');
+        }
+
+        $order = $this->orderRepository->getWithItems($decoded['order_id']);
+
+        if ($this->orderRepository->isPaid($order)||$this->orderRepository->isPartiallyPaid($order) ) {
+            throw new \Exception("تم تأكيد استلام هذا الطلب مسبقاً.");
+        }
+
+        DB::transaction(function () use ($Data, $order) {
+            app(FifoStockDeductionService::class)->deductStockFromBatches($order);
+            $order->update([
+                'status' => $order->payment_type === 'cash' ? 'paid' : 'partially_paid'
+            ]);
+            app(InstallmentService::class)->createInitialInstallment($order ,$Data['paidAmount']);
+
+        });
+
+        return [
+            'order_id' => $order->id,
+            'status' => $order->status,
+            'message' => 'تم تأكيد استلام الطلب بنجاح.',
+        ];
+    }
+
+
+
+
+
 }

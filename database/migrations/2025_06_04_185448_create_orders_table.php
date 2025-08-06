@@ -14,11 +14,13 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('cart_id')->constrained('carts')->onDelete('cascade');
-            $table->enum('payment_type', ['cash', 'installment'])->default('cash'); // نوع الدفع
-            $table->enum('payment_status', ['confirmed', 'paid', 'partially_paid'])->default('confirmed');
-            $table->decimal('total_price', 10, 2);   // السعر قبل الخصم
-            $table->unsignedInteger('used_points')->default(0); // عدد النقاط المستخدمة في هذا الطلب
-            $table->decimal('final_price', 10, 2)->nullable();   // السعر بعد الخصم بالنقاط
+            $table->enum('payment_type', ['cash', 'installment'])->default('cash');
+            $table->enum('status', ['pending','rejected','confirmed', 'paid', 'partially_paid'])
+                ->default('confirmed');
+            $table->decimal('total_price', 10, 2);
+            $table->unsignedInteger('used_points')->default(0);
+            $table->decimal('final_price', 10, 2)->nullable();
+            $table->string('qr_code_path')->nullable(); // مسار حفظ qr code
             $table->timestamps();
         });
     }
