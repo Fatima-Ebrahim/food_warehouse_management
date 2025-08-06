@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\LowStockReportController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\WarehouseDesignController;
 use App\Http\Controllers\Auth\AuthController;
@@ -82,7 +83,7 @@ Route::middleware('auth:api')->group(function () {
 //orders---------------------
     Route::post('/orders/confirm', [OrderController::class, 'confirm']);
     ///todo
-    Route::get('paymentMethod',[]);
+    Route::get('paymentMethod', []);
 
 });
 
@@ -170,6 +171,11 @@ Route::middleware('auth:api')->group(function () {
         Route::get('reports/{id}', [InventoryController::class, 'getStocktakeReportDetails']);
         Route::put('scheduled-stocktake/{id}', [InventoryController::class, 'updateScheduledStocktake']);
         Route::delete('scheduled-stocktake/{id}', [InventoryController::class, 'cancelScheduledStocktake']);
+        // Scheduled Stocktakes Management
+        Route::get('/scheduled-stocktakes', [InventoryController::class, 'getScheduledStocktakes']);
+        Route::put('scheduled-stocktake/{id}', [InventoryController::class, 'updateScheduledStocktake']);
+        Route::delete('scheduled-stocktake/{id}', [InventoryController::class, 'cancelScheduledStocktake']);
+
     });
 
     // --- Notifications ---
@@ -179,5 +185,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/store-device-token', [NotificationController::class, 'storeUserDeviceToken']);
         Route::put('/{notificationId}/mark-as-seen', [NotificationController::class, 'markAsSeen']);
     });
+     //    low stock report
+    Route::get('/reports/low-stock', [LowStockReportController::class, 'getReport']);
 
 });

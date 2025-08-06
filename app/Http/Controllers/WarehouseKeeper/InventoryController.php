@@ -29,7 +29,7 @@ class InventoryController extends Controller
         }
     }
 
-    public function submitStocktake(SubmitStocktakeRequest $request, int $stocktakeId)
+    public function submitStocktake(SubmitStocktakeRequest $request,  $stocktakeId)
     {
         try {
             $discrepancies = $this->inventoryService->processStocktakeSubmission($stocktakeId, $request->validated()['items']);
@@ -43,13 +43,13 @@ class InventoryController extends Controller
         }
     }
 
-    public function getStocktakeReports()
+    public function getStocktakeReports(Request $request)
     {
-        $reports = $this->inventoryService->getReports();
+        $status = $request->query('status');
+        $reports = $this->inventoryService->getReports($status);
         return response()->json(['success' => true, 'data' => $reports]);
     }
-
-    public function getStocktakeReportDetails(int $id)
+    public function getStocktakeReportDetails( $id)
     {
         try {
             $details = $this->inventoryService->getReportDetails($id);
@@ -58,13 +58,22 @@ class InventoryController extends Controller
             return response()->json(['success' => false, 'message' => 'Report not found.'], 404);
         }
     }
+    public function getScheduledStocktakes()
+    {
+        try {
+            $stocktakes = $this->inventoryService->getScheduledStocktakes();
+            return response()->json(['success' => true, 'data' => $stocktakes]);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 
-    public function updateScheduledStocktake(Request $request, int $id)
+    public function updateScheduledStocktake(Request $request,  $id)
     {
         $validatedData = $request->validate([
             'notes' => 'sometimes|nullable|string',
             'schedule_frequency' => 'sometimes|required|in:days,weeks,months,years',
-            'schedule_interval' => 'sometimes|required|integer|min:1',
+            'schedule_erval' => 'sometimes|required|eger|min:1',
         ]);
 
         try {
