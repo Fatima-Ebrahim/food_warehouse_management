@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 
 use App\Http\Requests\ConfirmOrderRequest;
 use App\Http\Requests\QrScannerRequest;
+use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Services\Orders\OrderService;
 use Illuminate\Support\Facades\Storage;
 
@@ -42,7 +43,6 @@ class  OrderController extends Controller
         }
     }
 
-
     public function getOrderDetails($orderId){
        $order= $this->orderService->getOrderDetails($orderId);
        return response()->json($order);
@@ -59,16 +59,50 @@ class  OrderController extends Controller
             return response()->file(storage_path("app/public/{$path}"));
     }
 
-    public function scanQr(QrScannerRequest $request)
+    public function getPendingOrders(){
+        try{
+
+        $pendOrders=$this->orderService->getPendingOrders();
+        return response()->json([
+            'pend_orders '=>$pendOrders
+
+        ],200);}
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    public function updateOrderStatus(UpdateOrderStatusRequest $request){
+        try{
+            $validated = $request->validated();
+        $pendOrders=$this->orderService->updateOrderStatus($validated['order_id'] ,$validated['status']);
+        return response()->json([
+            'pend_orders '=>$pendOrders
+
+        ],200);}
+        catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+//تأكيد اشتلام الطلبية
+//  تأكيد الدفع اذا كان كاش وتأكيد الدفعة الاولى للتقسيط
+    public function receiveOrder(QrScannerRequest $request)
     {
         try {
-            $result = $this->orderService->processQr($request->qr_data);
+            $validated = $request->validated();
+            $result = $this->orderService->receiveOrder($validated);
             return response()->json(['status' => true, 'data' => $result]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
         }
     }
-
 
 
 }

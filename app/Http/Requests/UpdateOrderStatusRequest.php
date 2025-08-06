@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class QrScannerRequest extends FormRequest
+class UpdateOrderStatusRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return True;
+        return true;
     }
 
     /**
@@ -22,8 +22,8 @@ class QrScannerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'qr_data' => 'required|string',
-            'paidAmount'=>'numeric|nullable'
+            'order_id' => 'required|exists:orders,id',
+            'status' => 'required|in:confirmed,rejected'
         ];
     }
 }

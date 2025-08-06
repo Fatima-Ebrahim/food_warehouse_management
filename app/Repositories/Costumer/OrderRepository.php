@@ -15,7 +15,9 @@ class OrderRepository{
         Order::query()->find($id)->delete();
     }
 
-
+    public function makeOrderPaid(Order $order){
+        $order->update(['status'=>'paid']);
+    }
     public function get($id)
     {
         return Order::findOrFail($id);
@@ -40,9 +42,21 @@ class OrderRepository{
     {
         return $order->status === 'partially_paid';
     }
-    //    public function updateStatus(CartItem $cartItem, array $data)
-//    {
-//        $cartItem->update($data);
-//        return $cartItem;
-//    }
+
+    public function updateStatus(Order $order ,$status)
+    {
+     return   $order->update(['status'=>$status]);
+
+    }
+
+    public function getAllPendingOrders(){
+        return Order::query()->where('status','=','pending')->get();
+    }
+
+    public function getWithInstallments($orderId)
+    {
+        return Order::with('installments')->findOrFail($orderId);
+    }
+
+
 }

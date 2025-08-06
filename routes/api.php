@@ -11,8 +11,10 @@ use App\Http\Controllers\Customer\SettingsController;
 use App\Http\Controllers\Customer\UnitContoller;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Orders\CartItemController;
+use App\Http\Controllers\Orders\InstallmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Orders\PointsController;
+use App\Http\Controllers\Orders\QrController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WarehouseKeeper\InventoryController;
 use App\Http\Controllers\WarehouseKeeper\ItemStorageController;
@@ -84,13 +86,18 @@ Route::middleware('auth:api')->group(function () {
 //orders---------------------
     Route::post('/orders/confirm', [OrderController::class, 'confirm']);
     Route::get('getOrderDetails/{orderId}',[OrderController::class,'getOrderDetails']);
-    Route::post('scanOrder', [OrderController::class, 'scanQr']);
     Route::get('showOrderQr/{orderId}',[OrderController::class,'getOrderQr']);
+    Route::get('getPendedOrders',[OrderController::class,'getPendingOrders']);
+    Route::put('updateOrderStatus',[OrderController::class,'updateOrderStatus']);
+    Route::post('receiveOrder', [OrderController::class, 'receiveOrder']);
+//    installment
+    Route::get('getOrderInstallmentPlan/{orderId}',[InstallmentController::class,'getOrderInstallmentPlan']);
+    Route::get('getOrderInstallmentsBatchs/{orderId}',[InstallmentController::class,'getOrderInstallmentsBatchs']);
+    Route::get('getUserUnpaidInstallments',[InstallmentController::class,'getUserUnpaidInstallments']);
+    Route::post('payNextInstallment',[InstallmentController::class,'payNextInstallment']);
 
-    ///todo apis ofr orders
+//payment methods
     Route::get('paymentMethods',[PaymentController::class,'paymentMethods']);
-    Route::post('payCash');
-    Route::post('PayByInstallment');
     ///todo additional orders
     Route::post('addAdditionalOrder');
     Route::get('showAdditionalOrders');
@@ -102,6 +109,7 @@ Route::middleware('auth:api')->group(function () {
 
 
 });
+
 
 //--------------------------api  fatima
 Route::middleware('auth:api')->group(function () {

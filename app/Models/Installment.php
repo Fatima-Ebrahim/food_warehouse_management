@@ -8,10 +8,17 @@ class Installment extends Model
 {
     protected $fillable=[
         'order_id',
-        'amount',
+        'paid_amount',
+        'remaining_amount',
         'due_date',
         'paid_at',
-        'note'
+        'note',
+        'status'
+    ];
+
+    protected $casts = [
+        'due_date' => 'date',
+        'paid_at' => 'datetime',
     ];
 
     public function order()

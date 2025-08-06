@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('cart_id')->constrained('carts')->onDelete('cascade');
             $table->enum('payment_type', ['cash', 'installment'])->default('cash');
-            $table->enum('status', ['pending','confirmed', 'paid', 'partially_paid'])
+            $table->enum('status', ['pending','rejected','confirmed', 'paid', 'partially_paid'])
                 ->default('confirmed');
             $table->decimal('total_price', 10, 2);
             $table->unsignedInteger('used_points')->default(0);

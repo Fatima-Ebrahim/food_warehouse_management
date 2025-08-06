@@ -21,10 +21,11 @@ class OrderDetailsResource extends JsonResource
             'total_price'=>$this->total_price,
             'used_points'=>$this->used_points,
             'final_price'=>$this->final_price,
+//            'amount_paid'=>,
             'qr_code_url' => $this->qr_code_path
                 ? asset('storage/' . $this->qr_code_path)
                 : null,
-            'items' =>OrderItemResource::collection($this->whenLoaded('items')),
+            'items' =>OrderItemResource::collection(optional($this->orderItems)),
 
 
         ];
