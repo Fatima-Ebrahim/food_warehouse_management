@@ -137,16 +137,19 @@ class InventoryService
         }
     }
 
-    public function getReports()
+    public function getReports($status = null)
     {
-        return $this->inventoryRepository->getReports();
+        return $this->inventoryRepository->getReports($status);
     }
 
     public function getReportDetails( $id)
     {
         return $this->inventoryRepository->getReportDetails($id);
     }
-
+    public function getScheduledStocktakes()
+    {
+        return $this->inventoryRepository->getScheduledStocktakes();
+    }
     public function updateScheduledStocktake( $id, array $data)
     {
         $stocktake = $this->inventoryRepository->findStocktake($id);

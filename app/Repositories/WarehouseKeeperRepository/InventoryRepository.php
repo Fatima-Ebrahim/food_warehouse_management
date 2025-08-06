@@ -7,6 +7,7 @@ use App\Models\PurchaseReceiptItem;
 use App\Models\Item;
 use App\Models\Stocktake;
 use App\Models\StocktakeDetail;
+use Illuminate\Http\Request;
 
 class InventoryRepository
 {
@@ -85,15 +86,38 @@ class InventoryRepository
         return $stocktake;
     }
 
-    public function getReports()
+    public function getReports($status = null)
     {
-        return Stocktake::query()->select('id', 'requested_at', 'type', 'status', 'completed_at')
+        $query = Stocktake::query()->select('id', 'requested_at', 'type', 'status', 'completed_at')
+            ->orderBy('requested_at', 'desc');
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        return $query->get();
+    }
+    public function getPendingStocktake()
+    {
+        return Stocktake::query()->where('status','pending')->select('id', 'requested_at', 'type', 'status', 'completed_at')
             ->orderBy('requested_at', 'desc')
             ->get();
     }
-
+    public function getCompletedStocktake()
+    {
+        return Stocktake::query()->where('status','completed')->select('id', 'requested_at', 'type', 'status', 'completed_at')
+            ->orderBy('requested_at', 'desc')
+            ->get();
+    }
     public function getReportDetails( $id)
     {
         return Stocktake::with('details.item:id,name,code')->findOrFail($id);
+    }
+    public function getScheduledStocktakes()
+    {
+        return Stocktake::query()
+            ->where('type', 'scheduled')
+            ->orderBy('scheduled_at', 'asc')
+            ->get();
     }
 }

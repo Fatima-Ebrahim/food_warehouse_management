@@ -58,3 +58,11 @@ php artisan schedule:run
 وسيتم تنفيذ الأمر.
 
 هل تحب أن أساعدك في كتابة كود الأمر `stocktake:dispatch-scheduled` نفسه أو التأكد من أنه مسجّل بشكل صحيح؟
+
+//
+
+php artisan stock:check-low
+
+
+//====
+UPDATE purchase_receipt_items SET available_quantity = 0 WHERE item_id = 1
