@@ -58,5 +58,8 @@ class OrderRepository{
         return Order::with('installments')->findOrFail($orderId);
     }
 
+    public function getOrderOwner(Order $order){
+        return $order->cart->user->id;
+    }
 
 }

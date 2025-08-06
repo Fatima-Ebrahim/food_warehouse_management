@@ -139,7 +139,7 @@ class OrderService{
     {
             //todo اضافة اشعار لارسال حالة الطلب
         $order = $this->orderRepository->getWithItems($order_id);
-
+        $user_id=$this->orderRepository->getOrderOwner($order);
         if ($status=== 'rejected') {
             DB::transaction(function () use ($order) {
                 foreach ($order->orderItems as $orderItem) {

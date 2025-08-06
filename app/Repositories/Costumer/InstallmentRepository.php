@@ -73,11 +73,6 @@ class InstallmentRepository{
             ->update(['status' => 'late']);
     }
 
-    public function getByOrder(int $orderId)
-    {
-        return Installment::where('order_id', $orderId)->orderBy('due_date')->get();
-    }
-
     public function isFirstInstallment(int $orderId): bool
     {
         return !Installment::where('order_id', $orderId)->exists();
@@ -89,6 +84,11 @@ class InstallmentRepository{
             ->where('status', '!=', 'paid')
             ->orderBy('due_date')
             ->first();
+    }
+
+    public function getInstallmentOwner(Installment $installment){
+       return  $installment->order->cart->user->id;
+
     }
 
 //    public function isFullyPaid(int $orderId): bool
