@@ -28,13 +28,13 @@ return [
         'pdf_backend' => 'CPDF',
         'default_font_size' => 12,
 
-        'font_family' => [
-            'amiri' => [
-                'R' => 'Amiri-Regular.ttf',
-                'B' => 'Amiri-Bold.ttf',
-                'I' => 'Amiri-Italic.ttf',
-                'BI' => 'Amiri-BoldItalic.ttf',
-            ],
-        ],
+//        'font_family' => [
+//            'amiri' => [
+//                'R' => 'Amiri-Regular.ttf',
+//                'B' => 'Amiri-Bold.ttf',
+//                'I' => 'Amiri-Italic.ttf',
+//                'BI' => 'Amiri-BoldItalic.ttf',
+//            ],
+//        ],
     ],
 ];

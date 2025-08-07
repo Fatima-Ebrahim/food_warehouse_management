@@ -107,39 +107,40 @@ class PurchaseOrderRepository
         ])->findOrFail($orderId);
     }
 
-    public function updatePartialReceipt($orderId, array $receiptData, array $itemsData)
-    {
-        return DB::transaction(function () use ($orderId, $receiptData, $itemsData) {
-            $order = PurchaseOrder::findOrFail($orderId);
+ public function updatePartialReceipt($orderId, array $receiptData, array $itemsData)
+{
+    return DB::transaction(function () use ($orderId, $receiptData, $itemsData) {
+        $order = PurchaseOrder::findOrFail($orderId);
 
-            $order->update([
-                'receipt_status' => $receiptData['status'],
-                'receipt_date' => now(),
-                'receipt_number' => 'RC-' . $order->id,
-                'receipt_notes' => isset($receiptData['notes']) ? $receiptData['notes'] : $order->receipt_notes
+        $order->update([
+            'receipt_status' => $receiptData['status'],
+            'receipt_date' => now(),
+            'receipt_number' => 'RC-' . $order->id,
+            'receipt_notes' => isset($receiptData['notes']) ? $receiptData['notes'] : $order->receipt_notes
+        ]);
+
+        foreach ($itemsData as $itemData) {
+            $item = $order->purchaseItems()->findOrFail($itemData['id']);
+
+            $quantity = isset($itemData['quantity']) ? $itemData['quantity'] : $item->quantity;
+            $price = isset($itemData['price']) ? $itemData['price'] : $item->price;
+            $unitWeight = isset($itemData['unit_weight']) ? $itemData['unit_weight'] : $item->unit_weight;
+
+            $item->update([
+                'quantity' => $quantity,
+                'price' => $price,
+                'unit_weight' => $unitWeight,
+                'total_price' => $quantity * $price,
+                'total_weight' => $quantity * $unitWeight,
+                'notes' => isset($itemData['notes']) ? $itemData['notes'] : $item->notes,
             ]);
+            (new UpdateItemQuantitiesAction())->handle($item);
+        }
 
-            foreach ($itemsData as $itemData) {
-                $item = $order->purchaseItems()->findOrFail($itemData['id']);
-
-                $quantity = isset($itemData['quantity']) ? $itemData['quantity'] : $item->quantity;
-                $price = isset($itemData['price']) ? $itemData['price'] : $item->price;
-                $unitWeight = isset($itemData['unit_weight']) ? $itemData['unit_weight'] : $item->unit_weight;
-
-                $item->update([
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'unit_weight' => $unitWeight,
-                    'total_price' => $quantity * $price,
-                    'total_weight' => $quantity * $unitWeight,
-                    'notes' => isset($itemData['notes']) ? $itemData['notes'] : $item->notes,
-                ]);
-            }
-
-            $this->recalculateOrderTotal($order);
-            return $order->load(['supplier', 'purchaseItems.item', 'purchaseItems.unit']);
-        });
-    }
+        $this->recalculateOrderTotal($order);
+        return $order->load(['supplier', 'purchaseItems.item', 'purchaseItems.unit']);
+    });
+}
 
     public function getNonPendingOrders(array $statuses = null, array $withRelations = [])
     {

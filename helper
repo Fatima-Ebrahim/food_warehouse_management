@@ -69,3 +69,11 @@ UPDATE purchase_receipt_items SET available_quantity = 0 WHERE item_id = 1
 //===========
 php artisan schedule:list
 لاعرف ال commands يلي عتدي
+
+//================
+تعليمة تشغيل ال queue
+php artisan queue:work
+
+////------------
+لل view
+php artisan view:clear

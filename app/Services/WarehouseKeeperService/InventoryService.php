@@ -9,6 +9,7 @@ use App\Notifications\StocktakeRequestNotification;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Notification;
 
 class InventoryService
 {
@@ -39,7 +40,9 @@ class InventoryService
         $stocktake = $this->inventoryRepository->createStocktake($requestData);
 
         if ($stocktake->type === 'immediate') {
+
             $this->notifyWarehouseKeepers($stocktake);
+
         }
 
         return $stocktake;
@@ -125,13 +128,14 @@ class InventoryService
     {
         $keepers = User::query()->where('user_type', 'warehouse_keeper')->get();
         foreach ($keepers as $keeper) {
-            $keeper->notify(new StocktakeRequestNotification($stocktake));
+//            $keeper->notify(new StocktakeRequestNotification($stocktake));
+            Notification::send($keeper,new StocktakeRequestNotification($stocktake));
         }
     }
 
     protected function notifyManagers($stocktake)
     {
-        $managers = User::query()->where('user_type', 'manager')->get();
+        $managers = User::query()->where('user_type', 'admin')->get();
         foreach ($managers as $manager) {
             $manager->notify(new StocktakeCompletedNotification($stocktake));
         }

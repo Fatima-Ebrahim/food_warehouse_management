@@ -11,4 +11,6 @@ use Illuminate\Support\Facades\Schedule;
 //for test ->everyMinute();
 Schedule::command('stocktake:dispatch-scheduled')->everyMinute();
 //    ->daily();
-Schedule::command('stock:check-low')->dailyAt('00:00');
+Schedule::command('stock:check-low')->everyMinute();
+//    ->dailyAt('00:00');
+Schedule::command('installments:check-due')->daily();

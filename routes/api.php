@@ -156,7 +156,7 @@ Route::middleware('auth:api')->group(function () {
         Route::post('{orderId}/process-partial-receipt', [PurchaseOrderController::class, 'processPartialReceipt']);
         Route::get('{orderId}/unstored-items', [PurchaseOrderController::class, 'getUnstoredOrderItems']);
         Route::get('{orderId}/invoice', [PurchaseOrderController::class, 'showAsInvoice']);
-        Route::get('{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
+//        Route::get('{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
     });
 
     // Get supplier specific items
@@ -216,3 +216,4 @@ Route::middleware('auth:api')->group(function () {
 Route::get('/test', function () {
     return 'ok';
 });
+Route::get('purchase-orders/{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
