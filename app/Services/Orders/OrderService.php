@@ -24,7 +24,7 @@ class OrderService{
        protected  CustomerRepository $customerRepository,
        protected  SettingsRepository $settingsRepository,
        protected ItemRepository $itemRepository ,
-       protected PointTransactionRepository $pointTransactionRepository ,
+       protected PointTransactionRepository $pointTransactionRepository
 
     ) {}
     public function confirmOrder(int $userId, string $paymentType, array $items, ?int $pointsUsed = 0)

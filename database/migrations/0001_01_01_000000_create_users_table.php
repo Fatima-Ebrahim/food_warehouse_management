@@ -22,6 +22,7 @@ return new class extends Migration
                 'warehouse_keeper',
                 'customer'
             ])->default('customer');
+            $table->text('device_token')->nullable();
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();
