@@ -156,6 +156,37 @@ class PurchaseOrderController extends Controller
         }
     }
 
+    public function exportExpiredItemsToPdf()
+    {
+        try {
+            $reportData = $this->purchaseOrderService->getExpiredItemsForReport();
+
+            $pdf = PDF::loadView('reports.expired_items_report', ['report' => $reportData], [], [
+                'default_font' => 'tajawal'
+            ]);
+
+            return $pdf->stream('expired-items-report-' . now()->format('Y-m-d') . '.pdf');
+
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getExpiredItemsJson()
+    {
+        try {
+            $items = $this->purchaseOrderService->getExpiredItemsWithDetailedLocations();
+
+            return response()->json([
+                'success' => true,
+                'data' => $items,
+                'message' => 'Expired items retrieved successfully.'
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to retrieve expired items: ' . $e->getMessage()], 500);
+        }
+    }
     // TODO
     public function getBySupplier(GetItemsBySupplierRequest $request, $supplierId)
     {

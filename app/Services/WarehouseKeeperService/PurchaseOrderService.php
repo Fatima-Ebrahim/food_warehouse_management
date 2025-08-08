@@ -119,11 +119,36 @@ class PurchaseOrderService
         return $this->purchaseOrderRepository->updateExpiryDate($itemId, $date);
     }
 
-    public function getItemsNearExpiry( $days = 30)
+    public function getItemsNearExpiry($days = 30)
     {
         $startDate = now()->toDate();
-        $endDate = now()->addDays($days)->toDate();
-        return $this->purchaseOrderRepository->getItemsByDateRange('expiry_date', $startDate, $endDate);
+        $endDate = now()->addDays((int) $days)->toDate();
+        $items = $this->purchaseOrderRepository->getItemsByDateRange('expiry_date', $startDate, $endDate);
+
+        return $items->map(function ($item) {
+            $locations = $item->storageLocation->map(function ($location) {
+
+                if ($location->shelf) {
+                    return [
+                        'shelf_code' => $location->shelf->code,
+                        'shelf_id' => $location->shelf->id,
+                        'stored_quantity' => (float) $location->quantity
+                    ];
+                }
+                return null;
+            })->filter()->values();
+
+            return [
+                'purchase_receipt_item_id' => $item->id,
+                'item_id' => $item->item->id,
+                'item_name' => $item->item->name,
+                'item_code' => $item->item->code,
+                'expiry_date' => $item->expiry_date->format('Y-m-d'),
+                'quantity_in_batch' => (float) $item->quantity,
+                'supplier_name' => $item->purchaseOrder->supplier->name,
+                'storage_locations' => $locations,
+            ];
+        });
     }
 
     public function getPurchaseOrderAsInvoice( $orderId)
@@ -204,5 +229,62 @@ class PurchaseOrderService
     public function getItemsBySupplier( $supplierId, array $filters = [])
     {
         return $this->purchaseOrderRepository->getItemsBySupplier($supplierId, $filters);
+    }
+    public function getExpiredItemsForReport()
+    {
+        $items = $this->purchaseOrderRepository->getExpiredItems();
+
+        $formattedItems = $items->map(function ($item, $index) {
+            $locationsText = $item->storageLocation->map(function ($location) {
+                return optional($location->shelf)->code . ' (كمية: ' . (float) $location->quantity . ')';
+            })->implode(' | ');
+
+            return [
+                'number' => $index + 1,
+                'item_code' => $item->item->code,
+                'item_name' => $item->item->name,
+                'expiry_date' => $item->expiry_date->format('Y-m-d'),
+                'supplier_name' => $item->purchaseOrder->supplier->name,
+                'total_quantity' => (float) $item->quantity,
+                'location' => $locationsText ?: 'غير مخزنة',
+            ];
+        });
+
+        return [
+            'report_header' => [
+                'title' => 'تقرير المواد منتهية الصلاحية',
+                'report_date' => now()->format('Y-m-d'),
+            ],
+            'items_table' => $formattedItems,
+        ];
+    }
+
+    public function getExpiredItemsWithDetailedLocations()
+    {
+        $items = $this->purchaseOrderRepository->getExpiredItems();
+
+        return $items->map(function ($item) {
+                $locations = ($item->storageLocation ?? collect())->map(function ($location) {
+                    if ($location->shelf) {
+                        return [
+                            'shelf_id' => $location->shelf->id,
+                            'shelf_code' => $location->shelf->code,
+                            'stored_quantity' => (float) $location->quantity
+                        ];
+                    }
+                    return null;
+            })->filter()->values();
+
+            return [
+                'purchase_receipt_item_id' => $item->id,
+                'item_id' => $item->item->id,
+                'item_name' => $item->item->name,
+                'item_code' => $item->item->code,
+                'expiry_date' => $item->expiry_date->format('Y-m-d'),
+                'quantity_in_batch' => (float) $item->quantity,
+                'supplier_name' => optional($item->purchaseOrder->supplier)->name,
+                'storage_locations' => $locations,
+            ];
+        });
     }
 }

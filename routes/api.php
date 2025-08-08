@@ -85,19 +85,19 @@ Route::middleware('auth:api')->group(function () {
     Route::post('preview-price', [CartItemController::class, 'previewSelectedItemsPrice']);
 //orders---------------------
     Route::post('/orders/confirm', [OrderController::class, 'confirm']);
-    Route::get('getOrderDetails/{orderId}',[OrderController::class,'getOrderDetails']);
-    Route::get('showOrderQr/{orderId}',[OrderController::class,'getOrderQr']);
-    Route::get('getPendedOrders',[OrderController::class,'getPendingOrders']);
-    Route::put('updateOrderStatus',[OrderController::class,'updateOrderStatus']);
+    Route::get('getOrderDetails/{orderId}', [OrderController::class, 'getOrderDetails']);
+    Route::get('showOrderQr/{orderId}', [OrderController::class, 'getOrderQr']);
+    Route::get('getPendedOrders', [OrderController::class, 'getPendingOrders']);
+    Route::put('updateOrderStatus', [OrderController::class, 'updateOrderStatus']);
     Route::post('receiveOrder', [OrderController::class, 'receiveOrder']);
 //    installment
-    Route::get('getOrderInstallmentPlan/{orderId}',[InstallmentController::class,'getOrderInstallmentPlan']);
-    Route::get('getOrderInstallmentsBatchs/{orderId}',[InstallmentController::class,'getOrderInstallmentsBatchs']);
-    Route::get('getUserUnpaidInstallments',[InstallmentController::class,'getUserUnpaidInstallments']);
-    Route::post('payNextInstallment',[InstallmentController::class,'payNextInstallment']);
+    Route::get('getOrderInstallmentPlan/{orderId}', [InstallmentController::class, 'getOrderInstallmentPlan']);
+    Route::get('getOrderInstallmentsBatchs/{orderId}', [InstallmentController::class, 'getOrderInstallmentsBatchs']);
+    Route::get('getUserUnpaidInstallments', [InstallmentController::class, 'getUserUnpaidInstallments']);
+    Route::post('payNextInstallment', [InstallmentController::class, 'payNextInstallment']);
 
 //payment methods
-    Route::get('paymentMethods',[PaymentController::class,'paymentMethods']);
+    Route::get('paymentMethods', [PaymentController::class, 'paymentMethods']);
     ///todo additional orders
     Route::post('addAdditionalOrder');
     Route::get('showAdditionalOrders');
@@ -105,7 +105,6 @@ Route::middleware('auth:api')->group(function () {
     Route::put('updateAdditionalOrderStatus/{id}');
     ///todo search
     Route::post('search');
-
 
 
 });
@@ -158,7 +157,8 @@ Route::middleware('auth:api')->group(function () {
         Route::get('{orderId}/invoice', [PurchaseOrderController::class, 'showAsInvoice']);
 //        Route::get('{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
     });
-
+    // المواد يلي حنخلص صلاحيتها
+    Route::get('/items/expired', [PurchaseOrderController::class, 'getExpiredItemsJson']);
     // Get supplier specific items
     Route::get('suppliers/{supplier}/items', [PurchaseOrderController::class, 'getBySupplier']);
 
@@ -209,9 +209,12 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/store-device-token', [NotificationController::class, 'storeUserDeviceToken']);
         Route::put('/{notificationId}/mark-as-seen', [NotificationController::class, 'markAsSeen']);
     });
-    //    low stock report
-    Route::get('/reports/low-stock', [LowStockReportController::class, 'getReport']);
 
+    //     reports
+    Route::prefix('reports')->group(function () {
+        Route::get('/low-stock', [LowStockReportController::class, 'getReport']);
+        Route::get('/expired-items/pdf', [PurchaseOrderController::class, 'exportExpiredItemsToPdf']);
+    });
 });
 Route::get('/test', function () {
     return 'ok';

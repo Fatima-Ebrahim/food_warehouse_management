@@ -10,34 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderRepository
 {
-    /*public function createWithItems(array $orderData, array $itemsData)
-    {
-        return DB::transaction(function () use ($orderData, $itemsData) {
-            $orderData['order_date'] = isset($orderData['order_date']) ? $orderData['order_date'] : now();
 
-            $purchaseOrder = PurchaseOrder::create($orderData);
-            $purchaseOrder->po_number = 'PO-' . $purchaseOrder->id;
-            $purchaseOrder->save();
-
-            foreach ($itemsData as $item) {
-                $unitWeight = isset($item['unit_weight']) ? $item['unit_weight'] : 0;
-                $quantity = $item['quantity'];
-
-                $purchaseOrder->purchaseItems()->create([
-                    'item_id' => $item['item_id'],
-                    'unit_id' => $item['unit_id'],
-                    'quantity' => $quantity,
-                    'available_quantity' => $quantity,
-                    'price' => $item['price'],
-                    'total_price' => $quantity * $item['price'],
-                    'unit_weight' => $unitWeight,
-                    'total_weight' => $quantity * $unitWeight
-                ]);
-            }
-            $this->recalculateOrderTotal($purchaseOrder);
-            return $purchaseOrder->load('purchaseItems');
-        });
-    }*/
     public function createWithItems(array $orderData, array $itemsData)
     {
         return DB::transaction(function () use ($orderData, $itemsData) {
@@ -56,7 +29,6 @@ class PurchaseOrderRepository
                     'item_id' => $item['item_id'],
                     'unit_id' => $item['unit_id'],
                     'quantity' => $quantity,
-//                    'available_quantity' => $quantity,
                     'price' => $item['price'],
                     'total_price' => $quantity * $item['price'],
                     'unit_weight' => $unitWeight,
@@ -171,7 +143,7 @@ class PurchaseOrderRepository
     public function getItemsByDateRange($column, $startDate, $endDate)
     {
         return PurchaseReceiptItem::whereBetween($column, [$startDate, $endDate])
-            ->with(['item', 'purchaseOrder.supplier'])
+            ->with(['item', 'purchaseOrder.supplier','storageLocation.shelf'])
             ->get();
     }
 
@@ -257,4 +229,40 @@ class PurchaseOrderRepository
         }
         return $query->get();
     }
+    public function getExpiredItems()
+    {
+        return PurchaseReceiptItem::where('expiry_date', '<', now()->toDate())
+            ->where('quantity', '>', 0)
+            ->with(['item', 'purchaseOrder.supplier', 'storageLocation.shelf'])
+            ->orderBy('expiry_date', 'desc')
+            ->get();
+    }
+    /*public function createWithItems(array $orderData, array $itemsData)
+   {
+       return DB::transaction(function () use ($orderData, $itemsData) {
+           $orderData['order_date'] = isset($orderData['order_date']) ? $orderData['order_date'] : now();
+
+           $purchaseOrder = PurchaseOrder::create($orderData);
+           $purchaseOrder->po_number = 'PO-' . $purchaseOrder->id;
+           $purchaseOrder->save();
+
+           foreach ($itemsData as $item) {
+               $unitWeight = isset($item['unit_weight']) ? $item['unit_weight'] : 0;
+               $quantity = $item['quantity'];
+
+               $purchaseOrder->purchaseItems()->create([
+                   'item_id' => $item['item_id'],
+                   'unit_id' => $item['unit_id'],
+                   'quantity' => $quantity,
+                   'available_quantity' => $quantity,
+                   'price' => $item['price'],
+                   'total_price' => $quantity * $item['price'],
+                   'unit_weight' => $unitWeight,
+                   'total_weight' => $quantity * $unitWeight
+               ]);
+           }
+           $this->recalculateOrderTotal($purchaseOrder);
+           return $purchaseOrder->load('purchaseItems');
+       });
+   }*/
 }
