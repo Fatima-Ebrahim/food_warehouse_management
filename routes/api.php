@@ -135,6 +135,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('cabinets/{id}/coordinates', [WarehouseDesignController::class, 'getCabinetWithCoordinates']);
 
         // Shelves
+        Route::post('/cabinets-with-shelves', [WarehouseDesignController::class, 'storeCabinetWithShelves']);
         Route::get('shelves', [WarehouseDesignController::class, 'indexShelves']);
         Route::post('shelves', [WarehouseDesignController::class, 'storeShelf']);
         Route::get('shelves/{id}', [WarehouseDesignController::class, 'showShelf']);
@@ -157,6 +158,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('{orderId}/invoice', [PurchaseOrderController::class, 'showAsInvoice']);
 //        Route::get('{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
     });
+    Route::get('/purchase-receipt-items/{purchaseReceiptItemId}/cabinet-shelf-statuses', [ItemStorageController::class, 'getShelfStatuses']);
     // المواد يلي حنخلص صلاحيتها
     Route::get('/items/expired', [PurchaseOrderController::class, 'getExpiredItemsJson']);
     // Get supplier specific items
@@ -172,7 +174,7 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('storage')->group(function () {
         Route::post('store-item', [ItemStorageController::class, 'storeItem']);
         Route::post('store-item-auto', [ItemStorageController::class, 'storeItemAuto']);
-        Route::get('item-details/{purchaseReceiptItemId}', [ItemStorageController::class, 'getItemDetails']);
+//        Route::get('item-details/{purchaseReceiptItemId}', [ItemStorageController::class, 'getItemDetails']);
         Route::post('shelf-capacity', [ItemStorageController::class, 'getShelfCapacity']);
         Route::get('shelf-statuses/{purchaseReceiptItemId}', [ItemStorageController::class, 'getShelfStatuses']);
         Route::get('cabinets/{cabinetId}/summary', [ItemStorageController::class, 'getCabinetSummary']);
@@ -220,3 +222,7 @@ Route::get('/test', function () {
     return 'ok';
 });
 Route::get('purchase-orders/{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
+Route::get('item-details/{purchaseReceiptItemId}', [ItemStorageController::class, 'getItemDetails']);
+Route::get('items/{item}/suggested-zones-with-cabinets', [ItemStorageController::class, 'suggestedZonesWithCabinets']);
+Route::get('/unstored-orders/{orderId}/items', [PurchaseOrderController::class, 'getUnstoredOrderItems']);
+Route::get('/unstored-orders-summary', [PurchaseOrderController::class, 'getUnstoredOrdersSummary']);
