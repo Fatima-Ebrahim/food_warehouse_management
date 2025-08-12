@@ -40,7 +40,13 @@ class CategoryController extends Controller
         return response()->json( $this->CategoryService->getLastLevel());
     }
 
+    public function getAllCategoriesWithChildAndItems(){
+        return response()->json( $this->CategoryService->getAllCategoriesWithChildAndItems());
+    }
 
+    public function getLastLevelForCat($catId){
+        return response()->json($this->CategoryService->getLastLevelForCat($catId));
+    }
 
 
 

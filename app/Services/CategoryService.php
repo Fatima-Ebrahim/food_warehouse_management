@@ -3,13 +3,15 @@ namespace App\Services;
 
 use App\Http\Requests\StoreCategoryRequest;
 use App\Repositories\CategoryRepository;
+use App\Repositories\ItemRepository;
+use Nette\Utils\ArrayList;
+use PhpParser\Node\Expr\Array_;
+use phpseclib3\Math\BigInteger\Engines\PHP\Reductions\Barrett;
 
 class CategoryService{
-    protected $CategoryRepository;
-
-    public function __construct(CategoryRepository $category)
+    public function __construct(protected CategoryRepository $CategoryRepository ,
+                                protected ItemRepository $itemRepository ,)
     {
-        $this->CategoryRepository=$category;
     }
 
     public function CreateCategory(array $data)
@@ -49,8 +51,67 @@ class CategoryService{
         });
     }
 
+
     public function getLastLevel(){
         return $this->CategoryRepository->getLastLevel();
 
+    }
+
+    public function getAllCategoriesWithChildAndItems(){
+
+        $Categories= $this->CategoryRepository->getCategory();
+            $collect =collect();
+            foreach ($Categories as $category){
+                $collect->push([
+                        'id'=>$category->id ,
+                        'name'=> $category->name ,
+                        'child'=> $this->getAllSubsCategoryForId($category->id)]
+                );
+            }
+            return $collect ;
+    }
+
+    public function getAllSubsCategoryForId($parent_id) {
+
+        $SubCategories = $this->CategoryRepository->getSubCategory($parent_id);
+
+        return $SubCategories->map(function ($subCategory) {
+            $children = $this->CategoryRepository->hasChildren($subCategory->id);
+            $childrenData = $children ? $this->getAllSubsCategoryForId($subCategory->id) : collect([]);
+            if(!$children) {
+                $items= $this->itemRepository->getItemsInCategory($subCategory->id);
+                return['id' => $subCategory->id,
+                'name' => $subCategory->name,
+                'code' => $subCategory->code,
+                'parent_id' => $subCategory->parent_id,
+                'child' => $items ];// استخدم all() بدلاً من toArray()
+            }
+
+            return [
+                'id' => $subCategory->id,
+                'name' => $subCategory->name,
+                'code' => $subCategory->code,
+                'parent_id' => $subCategory->parent_id,
+                'child' => $childrenData->all() // استخدم all() بدلاً من toArray()
+            ];
+        });
+    }
+
+    public function getLastLevelForCat($catId) {
+        $SubCategories = $this->CategoryRepository->getSubCategory($catId);
+        $data = collect();
+
+        $SubCategories->each(function ($subCategory) use (&$data) {
+            $children = $this->CategoryRepository->hasChildren($subCategory->id);
+
+            if (!$children) {
+                $data->push($subCategory->id);
+            } else {
+                $childResults = $this->getLastLevelForCat($subCategory->id);
+                $data = $data->merge($childResults);
+            }
+        });
+
+        return $data;
     }
 }

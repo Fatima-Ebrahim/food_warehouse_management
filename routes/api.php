@@ -14,8 +14,8 @@ use App\Http\Controllers\Orders\CartItemController;
 use App\Http\Controllers\Orders\InstallmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Orders\PointsController;
-use App\Http\Controllers\Orders\QrController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\specialOfferController;
 use App\Http\Controllers\WarehouseKeeper\InventoryController;
 use App\Http\Controllers\WarehouseKeeper\ItemStorageController;
 use App\Http\Controllers\WarehouseKeeper\PurchaseOrderController;
@@ -30,7 +30,6 @@ Route::middleware('auth:api')->group(function () {
     });
 });
 //registration
-
 Route::get('showAll', [RegisterRequestController::class, 'getAllRegistration']);
 Route::post('registerRequests', [RegisterRequestController::class, 'store']);
 Route::get('showById/{id}', [RegisterRequestController::class, 'show']);
@@ -40,11 +39,13 @@ Route::put('changePassword', [AuthController::class, 'addPassword']);
 //----------------
 
 
+Route::get('getLastLevelForCat/{catId}', [CategoryController::class, 'getLastLevelForCat']);
 //category
 Route::post('addCategory', [CategoryController::class, 'store']);
 Route::get('showCategories', [CategoryController::class, 'getAllCategories']);
 Route::get('showSubCategories/{parent_id}', [CategoryController::class, 'getSubCategories']);
 Route::get('lastLevel', [CategoryController::class, 'showLastLevel']);
+Route::get('getAllCategoriesWithChildAndItems', [CategoryController::class, 'getAllCategoriesWithChildAndItems']);
 //unit
 Route::post('addUnit', [UnitContoller::class, 'store']);
 Route::get('showUnits', [UnitContoller::class, 'index']);
@@ -77,8 +78,8 @@ Route::middleware('auth:api')->group(function () {
     //user points
     Route::get('showPoints', [PointsController::class, 'getPoints']);
     Route::get('addPoints', [PointsController::class, 'addPoints']);
-//cart item      testing
-    Route::get('cart-items', [CartItemController::class, 'index']);
+//cart item
+    Route::get('cart-items', [CartItemController::class, 'showAllCartItems']);
     Route::post('cart-items', [CartItemController::class, 'store']);
     Route::put('cart-items/{cartItem}', [CartItemController::class, 'update']);
     Route::delete('cart-items/{cartItem}', [CartItemController::class, 'destroy']);
@@ -103,12 +104,26 @@ Route::middleware('auth:api')->group(function () {
     Route::get('showAdditionalOrders');
     Route::get('showAdditionalOrderDetails/{id}');
     Route::put('updateAdditionalOrderStatus/{id}');
+
+    //todo special offers
+    Route::Post('addSpecialOrder',[specialOfferController::class,'create']);
+    Route::get('showActiveOffers',[specialOfferController::class,'getActiveOffers']);
+    Route::get('showInactiveOffers',[specialOfferController::class,'getInactiveOffers']);
+    Route::get('showAllOffers',[specialOfferController::class,'getAllOffers']);
+    Route::put('updateOfferStatus',[specialOfferController::class,'updateOfferStatus']);
+    Route::delete('deleteOffer/{offerId}',[specialOfferController::class,'destroy']);
+    //todo update offer
+//    Route::put('updateOffer/{offerId}', [SpecialOfferController::class, 'update']);
+
+
+
     ///todo search
     Route::post('search');
 
 
 
 });
+
 
 
 //--------------------------api  fatima

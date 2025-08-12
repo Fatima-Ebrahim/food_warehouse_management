@@ -2,6 +2,7 @@
 namespace App\Services;
 use App\Http\Resources\Items\ItemResource;
 use App\Models\Item;
+use App\Repositories\CategoryRepository;
 use App\Repositories\ItemRepository;
 use App\Repositories\ItemUnitRepository;
 use Illuminate\Support\Facades\DB;
@@ -9,12 +10,12 @@ use Illuminate\Support\Facades\Storage;
 
 class ItemService{
 
-    protected $ItemRepository;
-    protected $itemUniteRepository ;
-    public function __construct(ItemRepository $item, ItemUnitRepository $itemUnitRepository)
+
+    public function __construct(
+                                protected ItemRepository $ItemRepository,
+                                protected ItemUnitRepository $itemUniteRepository ,
+                                protected CategoryRepository $categoryRepository ,)
     {
-        $this->ItemRepository=$item;
-        $this->itemUniteRepository=$itemUnitRepository;
     }
 
     public function createItem(array $data): Item
@@ -54,19 +55,18 @@ class ItemService{
 
     public function getItems($category_id)
     {
-        $items=collect($this->ItemRepository->getItemsInCategory($category_id));
-
-        return $items->map(function ($item) {
-
+        $lastLevelCats=app(CategoryService::class)->getLastLevelForCat($category_id);
+        $data=collect();
+        foreach ($lastLevelCats as $lastLevelCat){
+            $items=collect($this->ItemRepository->getItemsInCategory($lastLevelCat));
+       $data=$data->merge($items->map(function ($item) {
             return [
                 'id' => $item->id,
                 'name'=>$item->name,
                 'image' => $item->image,
-                'type'=>'item',
-                'next'=>'item',
-                'has_children'=>false,
             ];
-        });
+        }));}
+        return $data;
     }
 
     public function  getAllItems(){
