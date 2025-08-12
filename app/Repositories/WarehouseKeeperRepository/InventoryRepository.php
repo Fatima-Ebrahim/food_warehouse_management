@@ -2,6 +2,7 @@
 
 namespace App\Repositories\WarehouseKeeperRepository;
 
+use App\Models\ItemTotalQuantity;
 use App\Models\ItemUnit;
 use App\Models\PurchaseReceiptItem;
 use App\Models\Item;
@@ -18,7 +19,7 @@ class InventoryRepository
 
         return (float) $totalAvailable;
     }*/
-    public function getExpectedQuantityForItem($itemId, $targetUnitId = null)
+  /*  public function getExpectedQuantityForItem($itemId, $targetUnitId = null)
     {
         $item = Item::with('baseUnit')->find($itemId);
         if (!$item) {
@@ -47,6 +48,31 @@ class InventoryRepository
         }
 
         return (float) $totalConvertedQuantity;
+    }*/
+    public function getExpectedQuantityForItem($itemId, $targetUnitId = null)
+    {
+        $item = Item::find($itemId);
+        if (!$item) {
+            return 0.0;
+        }
+
+        $inventoryDetail = ItemTotalQuantity::query()->find($itemId);
+
+        $totalInBaseUnit = $inventoryDetail ? $inventoryDetail->total_quantity_in_base_unit : 0.0;
+
+        if (!$targetUnitId || $targetUnitId == $item->base_unit_id) {
+            return (float) $totalInBaseUnit;
+        }
+
+        $targetUnit = ItemUnit::where('item_id', $itemId)
+            ->where('unit_id', $targetUnitId)
+            ->first();
+
+        if (!$targetUnit || $targetUnit->conversion_factor == 0) {
+            return (float) $totalInBaseUnit;
+        }
+
+        return (float) ($totalInBaseUnit / $targetUnit->conversion_factor);
     }
 
     public function getItemsDetails(array $itemIds)

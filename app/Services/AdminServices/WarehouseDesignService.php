@@ -146,7 +146,7 @@ class WarehouseDesignService
     }
 
 
-    private function manageCoordinatesOnCreate(string $entityType, int $entityId, array $data)
+    private function manageCoordinatesOnCreate( $entityType,  $entityId, array $data)
     {
         $coordinateIds = $data['coordinate_ids'] ?? [];
         if (!empty($coordinateIds)) {
@@ -159,7 +159,7 @@ class WarehouseDesignService
         }
     }
 
-    private function manageCoordinatesOnUpdate(string $entityType, int $entityId, array $data)
+    private function manageCoordinatesOnUpdate( $entityType,  $entityId, array $data)
     {
         if (array_key_exists('coordinate_ids', $data)) {
             $coordinateIds = $data['coordinate_ids'] ?? [];

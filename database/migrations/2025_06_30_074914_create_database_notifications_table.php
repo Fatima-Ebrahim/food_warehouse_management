@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('database_notifications', function (Blueprint $table) {
+        Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('receiver_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->string('title')->nullable();

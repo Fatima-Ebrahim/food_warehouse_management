@@ -5,6 +5,7 @@ namespace App\Services\Orders;
 use App\Http\Resources\OrderDetailsResource;
 use App\Models\Order;
 use App\Models\User;
+use App\Notifications\OrderStatusUpdateNotification;
 use App\Repositories\CustomerRepository;
 use App\Repositories\ItemRepository;
 use App\Repositories\SettingsRepository;
@@ -24,7 +25,7 @@ class OrderService{
        protected  CustomerRepository $customerRepository,
        protected  SettingsRepository $settingsRepository,
        protected ItemRepository $itemRepository ,
-       protected PointTransactionRepository $pointTransactionRepository ,
+       protected PointTransactionRepository $pointTransactionRepository
 
     ) {}
     public function confirmOrder(int $userId, string $paymentType, array $items, ?int $pointsUsed = 0)
@@ -135,12 +136,12 @@ class OrderService{
         return $this->orderRepository->getAllPendingOrders();
     }
 
-    public function updateOrderStatus($order_id ,$status)
+    public function updateOrderStatus($order_id, $status)
     {
-            //todo اضافة اشعار لارسال حالة الطلب
         $order = $this->orderRepository->getWithItems($order_id);
-        $user_id=$this->orderRepository->getOrderOwner($order);
-        if ($status=== 'rejected') {
+        $user = $this->orderRepository->getOrderOwner($order);
+
+        if ($status === 'rejected') {
             DB::transaction(function () use ($order) {
                 foreach ($order->orderItems as $orderItem) {
                     if (!$orderItem->itemUnit || !$orderItem->itemUnit->item) {
@@ -149,10 +150,15 @@ class OrderService{
                     $item = $orderItem->itemUnit->item;
                     $item->increment('Total_Available_Quantity', $orderItem->quantity);
                 }
-
             });
         }
+
         $this->orderRepository->updateStatus($order, $status);
+
+        if ($user) {
+            $user->notify(new OrderStatusUpdateNotification($order, $status));
+        }
+
         return $order;
     }
 

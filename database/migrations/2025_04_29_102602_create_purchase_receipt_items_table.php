@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('item_id')->constrained('items');
             $table->foreignId('unit_id')->constrained('units');
             $table->decimal('quantity', 12, 3);
+            $table->decimal('quantity_in_base_unit', 12, 3)->default(0);
             $table->decimal('available_quantity',12,3)->default(0);
             $table->decimal('price', 10, 2);
             $table->decimal('total_price', 12, 2)->default(0);

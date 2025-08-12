@@ -2,13 +2,14 @@
 
 namespace App\Services\WarehouseKeeperService;
 
-use App\Notifications\StocktakeCompletedNotification;
-use App\Repositories\WarehouseKeeperRepository\InventoryRepository;
 use App\Models\User;
+use App\Notifications\StocktakeCompletedNotification;
 use App\Notifications\StocktakeRequestNotification;
+use App\Repositories\WarehouseKeeperRepository\InventoryRepository;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Notification;
 
 class InventoryService
 {
@@ -39,7 +40,9 @@ class InventoryService
         $stocktake = $this->inventoryRepository->createStocktake($requestData);
 
         if ($stocktake->type === 'immediate') {
+
             $this->notifyWarehouseKeepers($stocktake);
+
         }
 
         return $stocktake;
@@ -82,6 +85,14 @@ class InventoryService
         return $discrepancies;
     }*/
 
+    protected function notifyWarehouseKeepers($stocktake)
+    {
+        $keepers = User::query()->where('user_type', 'warehouse_keeper')->get();
+        foreach ($keepers as $keeper) {
+            Notification::send($keeper, new StocktakeRequestNotification($stocktake));
+        }
+    }
+
     public function processStocktakeSubmission($stocktakeId, array $stocktakeData)
     {
         $stocktake = $this->inventoryRepository->findStocktake($stocktakeId);
@@ -102,7 +113,7 @@ class InventoryService
 
             $expectedQuantity = $this->inventoryRepository->getExpectedQuantityForItem($itemId, $unitId);
 
-            if (abs($expectedQuantity - $countedQuantity) > 0.001) {
+            if (abs($expectedQuantity - $countedQuantity) > 0) {
                 $itemDetail = $itemsDetails->get($itemId);
                 $discrepancies[] = [
                     'item_id' => $itemId,
@@ -121,17 +132,9 @@ class InventoryService
         return $discrepancies;
     }
 
-    protected function notifyWarehouseKeepers($stocktake)
-    {
-        $keepers = User::query()->where('user_type', 'warehouse_keeper')->get();
-        foreach ($keepers as $keeper) {
-            $keeper->notify(new StocktakeRequestNotification($stocktake));
-        }
-    }
-
     protected function notifyManagers($stocktake)
     {
-        $managers = User::query()->where('user_type', 'manager')->get();
+        $managers = User::query()->where('user_type', 'admin')->get();
         foreach ($managers as $manager) {
             $manager->notify(new StocktakeCompletedNotification($stocktake));
         }
@@ -142,15 +145,17 @@ class InventoryService
         return $this->inventoryRepository->getReports($status);
     }
 
-    public function getReportDetails( $id)
+    public function getReportDetails($id)
     {
         return $this->inventoryRepository->getReportDetails($id);
     }
+
     public function getScheduledStocktakes()
     {
         return $this->inventoryRepository->getScheduledStocktakes();
     }
-    public function updateScheduledStocktake( $id, array $data)
+
+    public function updateScheduledStocktake($id, array $data)
     {
         $stocktake = $this->inventoryRepository->findStocktake($id);
 
@@ -167,7 +172,7 @@ class InventoryService
         return $this->inventoryRepository->update($id, $data);
     }
 
-    public function cancelScheduledStocktake( $id)
+    public function cancelScheduledStocktake($id)
     {
         $stocktake = $this->inventoryRepository->findStocktake($id);
         if (!$stocktake || $stocktake->type !== 'scheduled') {

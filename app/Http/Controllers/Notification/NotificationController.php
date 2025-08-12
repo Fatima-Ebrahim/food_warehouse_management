@@ -30,29 +30,6 @@ class NotificationController extends Controller
         return response()->json(['message' => 'Device token updated successfully.'], 200);
     }
 
-    public function sendToUser(Request $request)
-    {
-        $request->validate([
-            'user_id' => 'required|integer|exists:users,id',
-            'title' => 'required|string|max:255',
-            'body' => 'required|string',
-            'data' => 'nullable|array',
-        ]);
-
-        $result = $this->firebase->sendToUser(
-            $request->user_id,
-            $request->title,
-            $request->body,
-            $request->data ?? []
-        );
-
-        if ($result['status'] === 'success') {
-            return response()->json($result);
-        } else {
-            return response()->json($result, 500);
-        }
-    }
-
     public function index()
     {
         $notifications = Notification::where('receiver_id', Auth::id())->where('seen', false)
@@ -78,4 +55,28 @@ class NotificationController extends Controller
 
         return response()->json(['message' => 'Notification marked as seen.']);
     }
+    //TODO
+    public function sendToUser(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id',
+            'title' => 'required|string|max:255',
+            'body' => 'required|string',
+            'data' => 'nullable|array',
+        ]);
+
+        $result = $this->firebase->sendToUser(
+            $request->user_id,
+            $request->title,
+            $request->body,
+            $request->data ?? []
+        );
+
+        if ($result['status'] === 'success') {
+            return response()->json($result);
+        } else {
+            return response()->json($result, 500);
+        }
+    }
+
 }

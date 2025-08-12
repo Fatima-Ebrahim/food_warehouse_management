@@ -1,26 +1,47 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{{ $invoice['invoice_header']['title'] }} - {{ $invoice['invoice_header']['invoice_number'] }}</title>
     <style>
-        body {
-            font-family: sans-serif;
-            font-size: 12px;
+        @font-face {
+            font-family: 'Tajawal';
+            src: url("{{ public_path('fonts/Tajawal-Regular.ttf') }}") format('truetype');
+            font-weight: normal;
+            font-style: normal;
         }
+
+        @font-face {
+            font-family: 'Tajawal';
+            src: url("{{ public_path('fonts/Tajawal-Bold.ttf') }}") format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        body, html, * {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 12px;
+            direction: rtl;
+            text-align: right;
+        }
+
+        h1, h3, strong {
+            font-weight: bold;
+        }
+
         .container { width: 100%; margin: 0 auto; }
         .invoice-header { background-color: #f2f2f2; padding: 20px; text-align: center; border-bottom: 2px solid #ddd; }
         .invoice-header h1 { margin: 0; font-size: 24px; }
         .details-section { padding: 20px 0; overflow: hidden; }
-        .details-section .supplier-details, .details-section .invoice-details { width: 48%; float: left; }
-        .details-section .invoice-details { float: right; text-align: right; }
+        .details-section .supplier-details, .details-section .invoice-details { width: 48%; float: right; }
+        .details-section .invoice-details { float: left; text-align: left; }
         .details-section h3 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 5px; font-size: 14px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
         th { background-color: #f9f9f9; }
-        .summary-section { margin-top: 20px; width: 40%; float: right; }
-        .summary-section td { border: none; }
+        .summary-section { margin-top: 20px; width: 40%; float: left; }
+        .summary-section td { border: none; text-align: left;}
+        .summary-section strong { float: right; }
         .notes { margin-top: 30px; font-size: 11px; color: #555; clear: both; }
     </style>
 </head>
@@ -36,8 +57,8 @@
             <p>
                 <strong>{{ $invoice['supplier_details']['name'] }}</strong><br>
                 {{ $invoice['supplier_details']['address'] }}<br>
-                Phone: {{ $invoice['supplier_details']['phone'] }}<br>
-                Email: {{ $invoice['supplier_details']['email'] }}
+                الهاتف: {{ $invoice['supplier_details']['phone'] }}<br>
+                البريد الإلكتروني: {{ $invoice['supplier_details']['email'] }}
             </p>
         </div>
         <div class="invoice-details">
@@ -55,12 +76,12 @@
         <thead>
         <tr>
             <th>#</th>
-            <th>Item Code</th>
-            <th>Item Name</th>
-            <th>Qty</th>
-            <th>Unit</th>
-            <th>Unit Price</th>
-            <th>Total</th>
+            <th>كود المادة</th>
+            <th>اسم المادة</th>
+            <th>الكمية</th>
+            <th>الوحدة</th>
+            <th>سعر الوحدة</th>
+            <th>الإجمالي</th>
         </tr>
         </thead>
         <tbody>
@@ -81,8 +102,8 @@
     <div class="summary-section">
         <table>
             <tr>
-                <td><strong>Grand Total:</strong></td>
-                <td style="text-align: right;"><strong>{{ number_format($invoice['summary']['grand_total'], 2) }}</strong></td>
+                <td><strong>المجموع الكلي:</strong></td>
+                <td><strong>{{ number_format($invoice['summary']['grand_total'], 2) }}</strong></td>
             </tr>
         </table>
     </div>

@@ -9,10 +9,10 @@ use App\Http\Requests\WarehouseKeeperRequests\PurchaseOrderRequests\StorePurchas
 use App\Http\Requests\WarehouseKeeperRequests\PurchaseOrderRequests\UpdateExpiryDateRequest;
 use App\Http\Requests\WarehouseKeeperRequests\PurchaseOrderRequests\UpdateProductionDateRequest;
 use App\Services\WarehouseKeeperService\PurchaseOrderService;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Exception;
+use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class PurchaseOrderController extends Controller
 {
@@ -113,7 +113,7 @@ class PurchaseOrderController extends Controller
         }
     }
 
-    public function exportToPdf($orderId)
+  /*  public function exportToPdf($orderId)
     {
         try {
             $invoiceData = $this->purchaseOrderService->getPurchaseOrderAsInvoice($orderId);
@@ -122,8 +122,24 @@ class PurchaseOrderController extends Controller
         } catch (ModelNotFoundException $e) {
             return response("Invoice not found", 404);
         }
-    }
+    }*/
+    public function exportToPdf($orderId)
+    {
+        try {
+            $invoiceData = $this->purchaseOrderService->getPurchaseOrderAsInvoice($orderId);
 
+            // قم بتحديد اسم الخط الافتراضي هنا
+            $pdf = PDF::loadView('invoices.purchase_invoice', ['invoice' => $invoiceData], [], [
+                'default_font' => 'tajawal'
+            ]);
+
+            $fileName = 'invoice-' . $invoiceData['invoice_header']['invoice_number'] . '.pdf';
+
+            return $pdf->stream($fileName);
+
+        } catch (ModelNotFoundException $e) {
+            return response("Invoice not found", 404);
+        }}
     public function getUnstoredOrdersSummary()
     {
         $summary = $this->purchaseOrderService->getUnstoredOrdersSummary();
@@ -140,6 +156,37 @@ class PurchaseOrderController extends Controller
         }
     }
 
+    public function exportExpiredItemsToPdf()
+    {
+        try {
+            $reportData = $this->purchaseOrderService->getExpiredItemsForReport();
+
+            $pdf = PDF::loadView('reports.expired_items_report', ['report' => $reportData], [], [
+                'default_font' => 'tajawal'
+            ]);
+
+            return $pdf->stream('expired-items-report-' . now()->format('Y-m-d') . '.pdf');
+
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getExpiredItemsJson()
+    {
+        try {
+            $items = $this->purchaseOrderService->getExpiredItemsWithDetailedLocations();
+
+            return response()->json([
+                'success' => true,
+                'data' => $items,
+                'message' => 'Expired items retrieved successfully.'
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to retrieve expired items: ' . $e->getMessage()], 500);
+        }
+    }
     // TODO
     public function getBySupplier(GetItemsBySupplierRequest $request, $supplierId)
     {

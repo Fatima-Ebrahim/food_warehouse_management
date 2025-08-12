@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\WarehouseKeeperRequests\InventoryRequests\StoreStocktakeRequest;
 use App\Http\Requests\WarehouseKeeperRequests\InventoryRequests\SubmitStocktakeRequest;
 use App\Services\WarehouseKeeperService\InventoryService;
+use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Exception;
 
 class InventoryController extends Controller
 {

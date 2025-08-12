@@ -23,6 +23,10 @@ class PurchaseReceiptItem extends Model
 
     ];
 
+    protected $casts = [
+        'expiry_date' => 'date',
+        'production_date' => 'date',
+    ];
     public function purchaseOrder()
     {
         return $this->belongsTo(PurchaseOrder::class,'purchase_order_id');
@@ -46,6 +50,7 @@ class PurchaseReceiptItem extends Model
     {
         return $this->hasMany(BatchStorageLocation::class, 'purchase_receipt_items_id');
     }
+
     public function itemUnit()
     {
         return $this->belongsTo(ItemUnit::class);

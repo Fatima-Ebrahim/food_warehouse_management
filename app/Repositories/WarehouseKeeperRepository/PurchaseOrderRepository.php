@@ -1,6 +1,8 @@
 <?php
+
 namespace App\Repositories\WarehouseKeeperRepository;
 
+use App\Actions\UpdateItemQuantitiesAction;
 use App\Models\Item;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseReceiptItem;
@@ -8,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderRepository
 {
+
     public function createWithItems(array $orderData, array $itemsData)
     {
         return DB::transaction(function () use ($orderData, $itemsData) {
@@ -21,17 +24,21 @@ class PurchaseOrderRepository
                 $unitWeight = isset($item['unit_weight']) ? $item['unit_weight'] : 0;
                 $quantity = $item['quantity'];
 
-                $purchaseOrder->purchaseItems()->create([
+
+                $receiptItem = $purchaseOrder->purchaseItems()->create([
                     'item_id' => $item['item_id'],
                     'unit_id' => $item['unit_id'],
                     'quantity' => $quantity,
-                    'available_quantity' => $quantity,
                     'price' => $item['price'],
                     'total_price' => $quantity * $item['price'],
                     'unit_weight' => $unitWeight,
                     'total_weight' => $quantity * $unitWeight
                 ]);
+
+                (new UpdateItemQuantitiesAction())->handle($receiptItem);
+
             }
+
             $this->recalculateOrderTotal($purchaseOrder);
             return $purchaseOrder->load('purchaseItems');
         });
@@ -44,7 +51,7 @@ class PurchaseOrderRepository
         $order->save();
     }
 
-    public function getByStatus( $status)
+    public function getByStatus($status)
     {
         return PurchaseOrder::where('receipt_status', $status)
             ->with([
@@ -57,7 +64,7 @@ class PurchaseOrderRepository
             ->get();
     }
 
-    public function getPurchaseOrderDetails( $orderId)
+    public function getPurchaseOrderDetails($orderId)
     {
         return PurchaseOrder::with([
             'supplier:id,name',
@@ -72,39 +79,40 @@ class PurchaseOrderRepository
         ])->findOrFail($orderId);
     }
 
-    public function updatePartialReceipt( $orderId, array $receiptData, array $itemsData)
-    {
-        return DB::transaction(function () use ($orderId, $receiptData, $itemsData) {
-            $order = PurchaseOrder::findOrFail($orderId);
+ public function updatePartialReceipt($orderId, array $receiptData, array $itemsData)
+{
+    return DB::transaction(function () use ($orderId, $receiptData, $itemsData) {
+        $order = PurchaseOrder::findOrFail($orderId);
 
-            $order->update([
-                'receipt_status' => $receiptData['status'],
-                'receipt_date' => now(),
-                'receipt_number' => 'RC-' . $order->id,
-                'receipt_notes' => isset($receiptData['notes']) ? $receiptData['notes'] : $order->receipt_notes
+        $order->update([
+            'receipt_status' => $receiptData['status'],
+            'receipt_date' => now(),
+            'receipt_number' => 'RC-' . $order->id,
+            'receipt_notes' => isset($receiptData['notes']) ? $receiptData['notes'] : $order->receipt_notes
+        ]);
+
+        foreach ($itemsData as $itemData) {
+            $item = $order->purchaseItems()->findOrFail($itemData['id']);
+
+            $quantity = isset($itemData['quantity']) ? $itemData['quantity'] : $item->quantity;
+            $price = isset($itemData['price']) ? $itemData['price'] : $item->price;
+            $unitWeight = isset($itemData['unit_weight']) ? $itemData['unit_weight'] : $item->unit_weight;
+
+            $item->update([
+                'quantity' => $quantity,
+                'price' => $price,
+                'unit_weight' => $unitWeight,
+                'total_price' => $quantity * $price,
+                'total_weight' => $quantity * $unitWeight,
+                'notes' => isset($itemData['notes']) ? $itemData['notes'] : $item->notes,
             ]);
+            (new UpdateItemQuantitiesAction())->handle($item);
+        }
 
-            foreach ($itemsData as $itemData) {
-                $item = $order->purchaseItems()->findOrFail($itemData['id']);
-
-                $quantity = isset($itemData['quantity']) ? $itemData['quantity'] : $item->quantity;
-                $price = isset($itemData['price']) ? $itemData['price'] : $item->price;
-                $unitWeight = isset($itemData['unit_weight']) ? $itemData['unit_weight'] : $item->unit_weight;
-
-                $item->update([
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'unit_weight' => $unitWeight,
-                    'total_price' => $quantity * $price,
-                    'total_weight' => $quantity * $unitWeight,
-                    'notes' => isset($itemData['notes']) ? $itemData['notes'] : $item->notes,
-                ]);
-            }
-
-            $this->recalculateOrderTotal($order);
-            return $order->load(['supplier', 'purchaseItems.item', 'purchaseItems.unit']);
-        });
-    }
+        $this->recalculateOrderTotal($order);
+        return $order->load(['supplier', 'purchaseItems.item', 'purchaseItems.unit']);
+    });
+}
 
     public function getNonPendingOrders(array $statuses = null, array $withRelations = [])
     {
@@ -115,31 +123,31 @@ class PurchaseOrderRepository
         return $query->with($withRelations)->orderBy('receipt_date', 'desc')->get();
     }
 
-    public function updateProductionDate( $itemId,  $date)
+    public function updateProductionDate($itemId, $date)
     {
         return $this->updateReceiptItemDate($itemId, 'production_date', $date);
     }
 
-    public function updateExpiryDate( $itemId,  $date)
-    {
-        return $this->updateReceiptItemDate($itemId, 'expiry_date', $date);
-    }
-
-    private function updateReceiptItemDate( $itemId,  $column,  $date)
+    private function updateReceiptItemDate($itemId, $column, $date)
     {
         $item = PurchaseReceiptItem::findOrFail($itemId);
         $item->update([$column => $date]);
         return $item;
     }
 
-    public function getItemsByDateRange( $column,  $startDate,  $endDate)
+    public function updateExpiryDate($itemId, $date)
+    {
+        return $this->updateReceiptItemDate($itemId, 'expiry_date', $date);
+    }
+
+    public function getItemsByDateRange($column, $startDate, $endDate)
     {
         return PurchaseReceiptItem::whereBetween($column, [$startDate, $endDate])
-            ->with(['item', 'purchaseOrder.supplier'])
+            ->with(['item', 'purchaseOrder.supplier','storageLocation.shelf'])
             ->get();
     }
 
-    public function getForInvoice( $orderId)
+    public function getForInvoice($orderId)
     {
         return PurchaseOrder::with([
             'supplier:id,name,email,phone,address',
@@ -171,12 +179,12 @@ class PurchaseOrderRepository
                 'supplier_name' => $order->supplier->name,
                 'order_date' => $order->order_date->format('Y-m-d'),
                 'unstored_items_count' => $unstoredItemsCount,
-                'total_amount' => (float) $order->total_amount,
+                'total_amount' => (float)$order->total_amount,
             ];
         })->filter()->values();
     }
 
-    public function getUnstoredOrderItemsDetails( $orderId)
+    public function getUnstoredOrderItemsDetails($orderId)
     {
         $order = PurchaseOrder::where('id', $orderId)
             ->whereHas('purchaseItems', function ($query) {
@@ -200,12 +208,12 @@ class PurchaseOrderRepository
             return [
                 'purchase_receipt_item_id' => $item->id,
                 'item_id' => $item->item->id,
-                'weight_per_unit' => (float) $item->unit_weight,
+                'weight_per_unit' => (float)$item->unit_weight,
                 'item_code' => $item->item->code,
                 'item_name' => $item->item->name,
-                'ordered_quantity' => (float) $item->quantity,
-                'stored_quantity' => (float) $storedQuantity,
-                'unstored_quantity' => (float) $unstoredQuantity,
+                'ordered_quantity' => (float)$item->quantity,
+                'stored_quantity' => (float)$storedQuantity,
+                'unstored_quantity' => (float)$unstoredQuantity,
             ];
         })->filter()->values();
 
@@ -213,7 +221,7 @@ class PurchaseOrderRepository
         return $order;
     }
 
-    public function getItemsBySupplier( $supplierId, array $filters = [])
+    public function getItemsBySupplier($supplierId, array $filters = [])
     {
         $query = Item::query()->where('supplier_id', $supplierId);
         if (!empty($filters['category_id'])) {
@@ -221,4 +229,40 @@ class PurchaseOrderRepository
         }
         return $query->get();
     }
+    public function getExpiredItems()
+    {
+        return PurchaseReceiptItem::where('expiry_date', '<', now()->toDate())
+            ->where('quantity', '>', 0)
+            ->with(['item', 'purchaseOrder.supplier', 'storageLocation.shelf'])
+            ->orderBy('expiry_date', 'desc')
+            ->get();
+    }
+    /*public function createWithItems(array $orderData, array $itemsData)
+   {
+       return DB::transaction(function () use ($orderData, $itemsData) {
+           $orderData['order_date'] = isset($orderData['order_date']) ? $orderData['order_date'] : now();
+
+           $purchaseOrder = PurchaseOrder::create($orderData);
+           $purchaseOrder->po_number = 'PO-' . $purchaseOrder->id;
+           $purchaseOrder->save();
+
+           foreach ($itemsData as $item) {
+               $unitWeight = isset($item['unit_weight']) ? $item['unit_weight'] : 0;
+               $quantity = $item['quantity'];
+
+               $purchaseOrder->purchaseItems()->create([
+                   'item_id' => $item['item_id'],
+                   'unit_id' => $item['unit_id'],
+                   'quantity' => $quantity,
+                   'available_quantity' => $quantity,
+                   'price' => $item['price'],
+                   'total_price' => $quantity * $item['price'],
+                   'unit_weight' => $unitWeight,
+                   'total_weight' => $quantity * $unitWeight
+               ]);
+           }
+           $this->recalculateOrderTotal($purchaseOrder);
+           return $purchaseOrder->load('purchaseItems');
+       });
+   }*/
 }
