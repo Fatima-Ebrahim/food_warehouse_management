@@ -15,7 +15,7 @@ use App\Http\Controllers\Orders\InstallmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Orders\PointsController;
 use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\specialOfferController;
+//use App\Http\Controllers\specialOfferController;
 use App\Http\Controllers\WarehouseKeeper\InventoryController;
 use App\Http\Controllers\WarehouseKeeper\ItemStorageController;
 use App\Http\Controllers\WarehouseKeeper\PurchaseOrderController;
@@ -105,15 +105,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('showAdditionalOrderDetails/{id}');
     Route::put('updateAdditionalOrderStatus/{id}');
 
-    //todo special offers
-    Route::Post('addSpecialOrder',[specialOfferController::class,'create']);
-    Route::get('showActiveOffers',[specialOfferController::class,'getActiveOffers']);
-    Route::get('showInactiveOffers',[specialOfferController::class,'getInactiveOffers']);
-    Route::get('showAllOffers',[specialOfferController::class,'getAllOffers']);
-    Route::put('updateOfferStatus',[specialOfferController::class,'updateOfferStatus']);
-    Route::delete('deleteOffer/{offerId}',[specialOfferController::class,'destroy']);
-    //todo update offer
-//    Route::put('updateOffer/{offerId}', [SpecialOfferController::class, 'update']);
+
 
 
 
