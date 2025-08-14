@@ -21,16 +21,16 @@ class InstallmentSettingsSeeder extends Seeder
             InstallmentSettings::class,
             collect([
                 'enable_installments' => true,
-                'first_payment_percentage' => 0.3,
-                'minimum_payment_percentage' => 0.1,
+                'first_payment_percentage' => 30,
+                'minimum_payment_percentage' => 10,
                 'payment_interval_days' => 30,
                 'max_duration_days' => 180,
                 'enforce_amount_limit' => true,
                 'max_installment_amount' => 1000000,
                 'reject_if_insufficient_amount' => true,
-                'enforce_points_limit' => true,
-                'min_points_required' => 20,
-                'reject_if_insufficient_points' => false,
+//                'enforce_points_limit' => true,
+//                'min_points_required' => 20,
+//                'reject_if_insufficient_points' => false,
             ])
         );
 
