@@ -16,31 +16,57 @@ class CartItemController extends Controller
         $this->service=$service;
     }
 
-    public function index()
+    public function showAllCartItems()
     {
-
         $user = auth()->user();
         $items = $this->service->getUserCartItems($user);
         return response()->json($items);
     }
 
-    public function store(CartItemRequest $request)
+    public function addToCart(CartItemRequest $request)
     {
         $user=auth()->user();
         $item = $this->service->addToCart( $request->validated() ,$user);
         return response()->json($item, 201);
     }
 
-    public function update(CartItemRequest $request, CartItem $cartItem)
+    public function update($type, $id, CartItemRequest $request)
     {
-        $item = $this->service->updateQuantity($cartItem, $request->validated());
-        return response()->json($item);
+        try {
+            $item = $this->service->updateQuantity(
+                $request->validated(),
+                $type,
+                $id
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => $item
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        }
     }
 
-    public function destroy(CartItem $cartItem)
+    public function destroy($type, $id)
     {
-        $this->service->removeFromCart($cartItem);
-        return response()->json(['message' => 'Item removed']);
+        try {
+            $this->service->removeFromCart($type, $id);
+
+            return response()->json(['message' => 'Item removed successfully'],200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+
+    }
+
     }
 
     public function previewSelectedItemsPrice(PriceCalculationRequest $request)
@@ -50,7 +76,8 @@ class CartItemController extends Controller
 
         try {
             $result = $this->service->calculateSelectedItemsPrice(
-                $request->items,
+                $request->offers??null,
+                $request->items??null,
                 $userId,
                 $pointsUsed
             );

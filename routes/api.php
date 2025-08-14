@@ -16,7 +16,7 @@ use App\Http\Controllers\Orders\InstallmentController;
 use App\Http\Controllers\Orders\OrderController;
 use App\Http\Controllers\Orders\PointsController;
 use App\Http\Controllers\PaymentController;
-//use App\Http\Controllers\specialOfferController;
+use App\Http\Controllers\specialOfferController;
 use App\Http\Controllers\WarehouseKeeper\InventoryController;
 use App\Http\Controllers\WarehouseKeeper\ItemStorageController;
 use App\Http\Controllers\WarehouseKeeper\PurchaseOrderController;
@@ -76,14 +76,15 @@ Route::get('/showInstallmentsSettings', [SettingsController::class, 'indexInstal
 //-------------------------------------------------------------------------------------------
 
 Route::middleware('auth:api')->group(function () {
+
     //user points
     Route::get('showPoints', [PointsController::class, 'getPoints']);
-    Route::get('addPoints', [PointsController::class, 'addPoints']);
+//    Route::get('addPoints', [PointsController::class, 'addPoints']);
 //cart item
     Route::get('cart-items', [CartItemController::class, 'showAllCartItems']);
-    Route::post('cart-items', [CartItemController::class, 'store']);
-    Route::put('cart-items/{cartItem}', [CartItemController::class, 'update']);
-    Route::delete('cart-items/{cartItem}', [CartItemController::class, 'destroy']);
+    Route::post('cart-items', [CartItemController::class, 'addToCart']);
+    Route::put('cart-items/{type}/{id}', [CartItemController::class, 'update']) ->where('type', 'item|offer');
+    Route::delete('cart-items/{type}/{id}', [CartItemController::class, 'destroy'])->where('type', 'item|offer');
     Route::post('preview-price', [CartItemController::class, 'previewSelectedItemsPrice']);
 //orders---------------------
     Route::post('/orders/confirm', [OrderController::class, 'confirm']);
@@ -92,6 +93,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('getPendedOrders', [OrderController::class, 'getPendingOrders']);
     Route::put('updateOrderStatus', [OrderController::class, 'updateOrderStatus']);
     Route::post('receiveOrder', [OrderController::class, 'receiveOrder']);
+    Route::get('getUserActiveOrders',[OrderController::class,'getUserActiveOrders']);
+    Route::get('getUserPendingOrders',[OrderController::class,'getUserPendingOrders']);
 //    installment
     Route::get('getOrderInstallmentPlan/{orderId}', [InstallmentController::class, 'getOrderInstallmentPlan']);
     Route::get('getOrderInstallmentsBatchs/{orderId}', [InstallmentController::class, 'getOrderInstallmentsBatchs']);
@@ -107,6 +110,15 @@ Route::middleware('auth:api')->group(function () {
     Route::put('updateAdditionalOrderStatus/{id}');
 
 
+    //todo special offers
+    Route::Post('addSpecialOrder',[specialOfferController::class,'create']);
+    Route::get('showActiveOffers',[specialOfferController::class,'getActiveOffers']);
+    Route::get('showInactiveOffers',[specialOfferController::class,'getInactiveOffers']);
+    Route::get('showAllOffers',[specialOfferController::class,'getAllOffers']);
+    Route::put('updateOfferStatus',[specialOfferController::class,'updateOfferStatus']);
+    Route::delete('deleteOffer/{offerId}',[specialOfferController::class,'destroy']);
+    //todo update offer
+//    Route::put('updateOffer/{offerId}', [SpecialOfferController::class, 'update']);
 
 
 

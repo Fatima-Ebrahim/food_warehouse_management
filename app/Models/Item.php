@@ -56,6 +56,8 @@ class Item extends Model
         return $this->hasMany(PurchaseReceiptItem::class,'item_id');
     }
 
-
+    public function offerItem(){
+        return $this->hasOne(SpecialOfferItem::class,'item_id');
+    }
 
 }

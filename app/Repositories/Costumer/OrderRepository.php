@@ -1,6 +1,7 @@
 <?php
 namespace App\Repositories\Costumer;
 use App\Models\Order;
+use App\Models\User;
 
 class OrderRepository{
 
@@ -26,6 +27,9 @@ class OrderRepository{
     public function getWithItems(int $id): Order
     {
         return Order::with(['orderItems.itemUnit.item'])->findOrFail($id);
+    }
+    public function getOrderWithRelations(Order $order){
+        return $order->load('orderOffer','orderItems');
     }
 
     public function updateQRPath($path , $orderId){
@@ -62,4 +66,13 @@ class OrderRepository{
         return $order->cart->user->id;
     }
 
+    public function getUserActiveOrders(User $user){
+        return $user->cart->orders()->
+            whereNotIn('status', ['pending', 'rejected'])->
+                with(['orderItems.itemUnit.item','orderOffer.offer.Items'])->get();
+    }
+    public function getUserPendingOrders(User $user){
+        return $user->cart->orders()->where('status','pending')
+            ->with(['orderItems.itemUnit.item','orderOffer.offer.Items'])->get();
+    }
 }
