@@ -39,6 +39,12 @@ protected ItemUnitService $itemUnitService;
 
         return response()->json($result, $result['success'] ? 200 : 404);
     }
+    public function showAllforLeen($item_id)
+    {
+        $result = $this->itemUnitService->getAllItemUnitsForLeen($item_id);
+
+        return response()->json($result, $result['success'] ? 200 : 404);
+    }
     public function update(){}
     public function delete(){}
 

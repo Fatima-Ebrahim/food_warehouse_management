@@ -58,10 +58,12 @@ Route::get('isBaseUnit', [ItemController::class, 'baseUnitForItem']);
 Route::get('/showAllItems', [ItemController::class, 'getAllItems']);
 Route::get('itemDetails/{id}', [ItemController::class, 'getItemById']);
 Route::get('showItemImage/{id}', [ItemController::class, 'showItemImage']);
+Route::get('getAllReceiptItemForItem/{itemId}',[ItemController::class,'getAllReceiptItemForItem']);
 //itemUnit
 Route::post('/addItemUnit', [ItemUnitController::class, 'store']);
 Route::get('showItemUnit', [ItemUnitController::class, 'show']);
 Route::get('showAllItemUnit/{itemId}', [ItemUnitController::class, 'showAll']);
+Route::get('leenShowAllItemUnit/{itemId}', [ItemUnitController::class, 'showAllforLeen']);
 //settings-------------------------------------
 //point
 Route::get('/showPointsSettings', [SettingsController::class, 'indexPoints']);
@@ -76,6 +78,10 @@ Route::get('/showInstallmentsSettings', [SettingsController::class, 'indexInstal
 //-------------------------------------------------------------------------------------------
 
 Route::middleware('auth:api')->group(function () {
+
+
+    Route::get('getItemFIFORecommendation/{order}',[ItemController::class,'getItemFIFORecommendation']);
+
 
     //user points
     Route::get('showPoints', [PointsController::class, 'getPoints']);

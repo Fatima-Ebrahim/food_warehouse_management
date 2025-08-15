@@ -36,5 +36,8 @@ class ItemUnitRepository{
     public function getAllItemUnitsById($item_id){
         return ItemUnit::query()->where('item_id',$item_id)->get();
     }
+    public function getAllItemUnitsByIdWithRelation($item_id){
+        return ItemUnit::with('unit')->where('item_id',$item_id)->get();
+    }
 
 }
