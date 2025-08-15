@@ -3,12 +3,13 @@ namespace App\Services\Orders;
 
 
 
-use App\Models\Installment;
+use App\Http\Resources\OrderDetailsResource;
 use App\Models\Order;
 use App\Repositories\Costumer\OrderRepository;
+use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
 class QrService{
@@ -19,19 +20,17 @@ class QrService{
 
     public function generateQr(Order $order, $userId)
     {
-
         $qrData = json_encode([
-            'order_id' => $order->id,
             'user_id' => $userId,
-            'timestamp' => now()->timestamp,
-        ]);
+            'order' => new OrderDetailsResource($order),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-        // حماية من حجم البيانات الكبير
         if (strlen($qrData) > 1024) {
             throw new \Exception('QR data is too large');
         }
 
         $qrCode = new QrCode($qrData);
+        $qrCode->setEncoding(new Encoding('UTF-8'));
         $qrCode->setSize(300);
 
         $writer = new PngWriter();

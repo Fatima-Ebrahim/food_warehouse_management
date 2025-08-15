@@ -7,13 +7,13 @@ use App\Http\Requests\QrScannerRequest;
 use App\Services\Orders\InstallmentService;
 use App\Services\Orders\OrderService;
 use App\Services\Orders\QrService;
-use Illuminate\Http\Request;
 
 class InstallmentController extends Controller
 {
     public function __construct(protected InstallmentService $installmentService ,
                                 protected OrderService $orderService ,
                                 protected QrService  $qrService)
+
     {
     }
 
@@ -64,4 +64,5 @@ class InstallmentController extends Controller
             return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
         }
     }
+
 }

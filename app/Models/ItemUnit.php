@@ -33,4 +33,8 @@ class ItemUnit extends Model
         return $this->hasMany(CartItem::class,'item_unit_id');
     }
 
+    public function offerItems(){
+        return $this->hasMany(SpecialOfferItem::class,'item_unit_id');
+    }
+
 }

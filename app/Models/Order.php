@@ -43,7 +43,9 @@ class Order extends Model
         return $this->hasMany(PointTransaction::class,'order_id');
     }
 
-
+    public function orderOffer(){
+        return $this->hasMany(OrderOffer::class,'order_id');
+    }
 
 
 }

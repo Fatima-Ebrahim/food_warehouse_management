@@ -16,17 +16,13 @@ use function PHPUnit\Framework\throwException;
 class InstallmentService{
 
 
-    protected CustomerRepository $customerRepository;
-    protected InstallmentSettings $settings;
 
-    public function __construct(CustomerRepository $customerRepository,
-                                InstallmentSettings $settings,
+
+    public function __construct(protected CustomerRepository $customerRepository,
+                                protected InstallmentSettings $settings,
                         protected InstallmentRepository $installmentRepository,
                         protected OrderRepository $orderRepository, )
-    {
-        $this->customerRepository = $customerRepository;
-        $this->settings = $settings;
-    }
+    {}
 
     /**
      * يتحقق من صلاحية الطلب بالتقسيط ويُرجع حالة الطلب
@@ -61,7 +57,7 @@ class InstallmentService{
     {
         $settings = app(InstallmentSettings::class);
 
-        $firstPaymentPercentage = $settings->first_payment_percentage;
+        $firstPaymentPercentage = $settings->first_payment_percentage *0.01;
 
         $finalPrice = $order->final_price;
 
@@ -115,7 +111,7 @@ class InstallmentService{
         $settings = app(InstallmentSettings::class);
         $intervalDays = $settings->payment_interval_days;
 
-        $miniPaymentPercentage = $settings->minimum_payment_percentage;
+        $miniPaymentPercentage = $settings->minimum_payment_percentage*0.01;
 
         $finalPrice = $order->final_price;
 
@@ -198,7 +194,7 @@ class InstallmentService{
 
         $finalDueDate = $order->created_at->copy()->addDays($settings->max_duration_days);
 
-        $minPaymentAmount = $settings->minimum_payment_percentage * $order->final_price;
+        $minPaymentAmount = ($settings->minimum_payment_percentage*0.01) * $order->final_price;
 
 
 

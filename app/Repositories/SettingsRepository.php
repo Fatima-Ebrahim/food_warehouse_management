@@ -62,9 +62,9 @@ class SettingsRepository{
             'enforce_amount_limit'   => $this->installments->enforce_amount_limit,
             'max_installment_amount' => $this->installments->max_installment_amount,
             'reject_if_insufficient_amount'   => $this->installments->reject_if_insufficient_amount,
-            'enforce_points_limit'   => $this->installments->enforce_points_limit,
-            'min_points_required' => $this->installments->min_points_required,
-            'reject_if_insufficient_points'   => $this->installments->reject_if_insufficient_points,
+//            'enforce_points_limit'   => $this->installments->enforce_points_limit,
+//            'min_points_required' => $this->installments->min_points_required,
+//            'reject_if_insufficient_points'   => $this->installments->reject_if_insufficient_points,
         ];
     }
 

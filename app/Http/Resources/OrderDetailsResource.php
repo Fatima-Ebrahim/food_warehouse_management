@@ -26,7 +26,11 @@ class OrderDetailsResource extends JsonResource
                 ? asset('storage/' . $this->qr_code_path)
                 : null,
             'items' =>OrderItemResource::collection(optional($this->orderItems)),
-
+            'offers' => $this->whenLoaded('orderOffer', function () {
+                return $this->orderOffer->map(function ($orderOffer) {
+                    return new ShowSpecialOfferResource($orderOffer->offer);
+                });
+            }),
 
         ];
     }

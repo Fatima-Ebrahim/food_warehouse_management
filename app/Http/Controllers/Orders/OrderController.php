@@ -6,15 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ConfirmOrderRequest;
 use App\Http\Requests\QrScannerRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
+use App\Models\SpecialOffer;
+use App\Repositories\SpecialOfferRepository;
 use App\Services\Orders\OrderService;
 use Illuminate\Support\Facades\Storage;
 
 class  OrderController extends Controller
 {
 
-    public function __construct( protected  OrderService $orderService) {
+    public function __construct( protected  OrderService $orderService ,
+    protected SpecialOfferRepository $offerRepository) {
 
     }
+
+
 
     public function confirm(ConfirmOrderRequest $request)
     {
@@ -25,7 +30,8 @@ class  OrderController extends Controller
             $order = $this->orderService->confirmOrder(
                 $userId,
                 $validated['payment_type'],
-                $validated['items'],
+                $validated['items']??null,
+                $validated['offers']??null,
                 $validated['points_used'] ?? 0
             );
 
@@ -99,6 +105,26 @@ class  OrderController extends Controller
             $validated = $request->validated();
             $result = $this->orderService->receiveOrder($validated);
             return response()->json(['status' => true, 'data' => $result]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
+        }
+
+
+    }    public function getUserActiveOrders()
+    {
+        try {
+           $user=auth()->user();
+            $result = $this->orderService->getUserActiveOrders($user);
+            return response()->json(['status' => true, 'orders' => $result]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
+        }
+    }    public function getUserPendingOrders()
+    {
+        try {
+            $user=auth()->user();
+            $result = $this->orderService->getUserPendingOrders($user);
+            return response()->json(['status' => true, 'pending_orders' => $result]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
         }

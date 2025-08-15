@@ -8,9 +8,12 @@ class PriceCalculationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'items' => 'required|array|min:1',
-            'items.*.cart_item_id' => 'required|exists:cart_items,id',
-            'items.*.quantity' => 'required|numeric|min:0.001',
+            'items' => 'array|min:1',
+            'items.*.cart_item_id' => 'exists:cart_items,id',
+            'items.*.quantity' => 'numeric|min:0.1',
+            'offers' => 'array|min:1',
+            'offers.*.cart_offer_id' => 'exists:cart_offers,id',
+            'offers.*.quantity' => 'numeric|min:0.1',
             'points_used' => 'nullable|integer|min:0',
         ];
     }

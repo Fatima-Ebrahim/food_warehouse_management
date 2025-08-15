@@ -10,14 +10,16 @@ class CartItemRepository{
         return CartItem::create($data);
     }
 
-    public function update(CartItem $cartItem, array $data)
+    public function update( $cartItemId, array $data )
     {
+        $cartItem=CartItem::find($cartItemId);
         $cartItem->update($data);
         return $cartItem;
     }
 
-    public function delete(CartItem $cartItem)
+    public function delete($id)
     {
+        $cartItem=CartItem::findOrFail($id);
         return $cartItem->delete();
     }
 
@@ -56,4 +58,6 @@ class CartItemRepository{
             })
             ->firstOrFail();
     }
+
+
 }
