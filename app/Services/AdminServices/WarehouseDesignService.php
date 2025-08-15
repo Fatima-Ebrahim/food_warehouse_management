@@ -7,6 +7,7 @@ use App\Http\Resources\WarehouseDesignResources\ShelfResource;
 use App\Http\Resources\WarehouseDesignResources\WarehouseCoordinateResource;
 use App\Http\Resources\WarehouseDesignResources\ZoneResource;
 use App\Repositories\AdminRepository\WarehouseDesignRepository;
+use App\Settings\DesignSettings;
 use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -105,6 +106,17 @@ class WarehouseDesignService
             $this->warehouseDesignRepository->detachAllCoordinatesFromCabinet($id);
             $this->warehouseDesignRepository->deleteCabinet($id);
         });
+    }
+    public function setComplete(): void
+    {
+        $settings = app(DesignSettings::class);
+        $settings->complete = true;
+        $settings->save();
+    }
+
+    public function getComplete(): bool
+    {
+        return app(DesignSettings::class)->complete;
     }
     // TODO
     public function assignZone($coordinateId, $zoneId)

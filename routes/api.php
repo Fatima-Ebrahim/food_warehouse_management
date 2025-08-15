@@ -143,33 +143,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('suppliers', SupplierController::class);
 
     // --- Admin: Warehouse Design ---
-    Route::prefix('warehouse-design')->group(function () {
-        // Zones
-        Route::get('zones', [WarehouseDesignController::class, 'indexZones']);
-        Route::post('zones', [WarehouseDesignController::class, 'storeZone']);
-        Route::get('zones/{id}', [WarehouseDesignController::class, 'showZone']);
-        Route::put('zones/{id}', [WarehouseDesignController::class, 'updateZone']);
-        Route::delete('zones/{id}', [WarehouseDesignController::class, 'deleteZone']);
 
-        // Cabinets
-        Route::get('cabinets', [WarehouseDesignController::class, 'indexCabinets']);
-        Route::post('cabinets', [WarehouseDesignController::class, 'storeCabinet']);
-        Route::post('cabinets-with-shelves', [WarehouseDesignController::class, 'storeCabinetWithShelves']);
-        Route::get('cabinets/{id}', [WarehouseDesignController::class, 'showCabinet']);
-        Route::put('cabinets/{id}', [WarehouseDesignController::class, 'updateCabinet']);
-        Route::delete('cabinets/{id}', [WarehouseDesignController::class, 'deleteCabinet']);
-        Route::get('cabinets/{id}/coordinates', [WarehouseDesignController::class, 'getCabinetWithCoordinates']);
-
-        // Shelves
-        Route::get('shelves', [WarehouseDesignController::class, 'indexShelves']);
-        Route::post('shelves', [WarehouseDesignController::class, 'storeShelf']);
-        Route::get('shelves/{id}', [WarehouseDesignController::class, 'showShelf']);
-
-        // Coordinates
-        Route::get('coordinates', [WarehouseDesignController::class, 'indexCoordinate']);
-        Route::post('coordinates', [WarehouseDesignController::class, 'storeCoordinate']);
-        Route::post('coordinates/{id}/assign-zone', [WarehouseDesignController::class, 'assignZone']);
-    });
 
     // --- Warehouse Keeper: Purchase Orders ---
     Route::prefix('purchase-orders')->group(function () {
@@ -183,6 +157,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('{orderId}/invoice', [PurchaseOrderController::class, 'showAsInvoice']);
 //        Route::get('{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
     });
+    Route::get('/purchase-receipt-items/{purchaseReceiptItemId}/cabinet-shelf-statuses', [ItemStorageController::class, 'getShelfStatuses']);
     // المواد يلي حنخلص صلاحيتها
     Route::get('/items/expired', [PurchaseOrderController::class, 'getExpiredItemsJson']);
     // Get supplier specific items
@@ -198,11 +173,9 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('storage')->group(function () {
         Route::post('store-item', [ItemStorageController::class, 'storeItem']);
         Route::post('store-item-auto', [ItemStorageController::class, 'storeItemAuto']);
-        Route::get('item-details/{purchaseReceiptItemId}', [ItemStorageController::class, 'getItemDetails']);
+//        Route::get('item-details/{purchaseReceiptItemId}', [ItemStorageController::class, 'getItemDetails']);
         Route::post('shelf-capacity', [ItemStorageController::class, 'getShelfCapacity']);
         Route::get('shelf-statuses/{purchaseReceiptItemId}', [ItemStorageController::class, 'getShelfStatuses']);
-        Route::get('cabinets/{cabinetId}/summary', [ItemStorageController::class, 'getCabinetSummary']);
-        Route::get('shelves/{shelfId}/details', [ItemStorageController::class, 'getShelfDetails']);
 
         // Suggestions for a specific item
         Route::prefix('items/{item}/suggestions')->group(function () {
@@ -246,3 +219,41 @@ Route::get('/test', function () {
     return 'ok';
 });
 Route::get('purchase-orders/{orderId}/pdf', [PurchaseOrderController::class, 'exportToPdf']);
+Route::get('item-details/{purchaseReceiptItemId}', [ItemStorageController::class, 'getItemDetails']);
+Route::get('items/{item}/suggested-zones-with-cabinets', [ItemStorageController::class, 'suggestedZonesWithCabinets']);
+Route::get('/unstored-orders/{orderId}/items', [PurchaseOrderController::class, 'getUnstoredOrderItems']);
+Route::get('/unstored-orders-summary', [PurchaseOrderController::class, 'getUnstoredOrdersSummary']);
+
+Route::prefix('warehouse-design')->group(function () {
+    // Zones
+    Route::get('zones', [WarehouseDesignController::class, 'indexZones']);
+    Route::post('zones', [WarehouseDesignController::class, 'storeZone']);
+    Route::get('zones/{id}', [WarehouseDesignController::class, 'showZone']);
+    Route::put('zones/{id}', [WarehouseDesignController::class, 'updateZone']);
+    Route::delete('zones/{id}', [WarehouseDesignController::class, 'deleteZone']);
+
+    // Cabinets
+    Route::get('cabinets', [WarehouseDesignController::class, 'indexCabinets']);
+    Route::post('cabinets', [WarehouseDesignController::class, 'storeCabinet']);
+    Route::post('cabinets-with-shelves', [WarehouseDesignController::class, 'storeCabinetWithShelves']);
+    Route::get('cabinets/{id}', [WarehouseDesignController::class, 'showCabinet']);
+    Route::put('cabinets/{id}', [WarehouseDesignController::class, 'updateCabinet']);
+    Route::delete('cabinets/{id}', [WarehouseDesignController::class, 'deleteCabinet']);
+    Route::get('cabinets/{id}/coordinates', [WarehouseDesignController::class, 'getCabinetWithCoordinates']);
+
+    // Shelves
+    Route::post('/cabinets-with-shelves', [WarehouseDesignController::class, 'storeCabinetWithShelves']);
+    Route::get('shelves', [WarehouseDesignController::class, 'indexShelves']);
+    Route::post('shelves', [WarehouseDesignController::class, 'storeShelf']);
+    Route::get('shelves/{id}', [WarehouseDesignController::class, 'showShelf']);
+
+    // Coordinates
+    Route::get('coordinates', [WarehouseDesignController::class, 'indexCoordinate']);
+    Route::post('coordinates', [WarehouseDesignController::class, 'storeCoordinate']);
+    Route::post('coordinates/{id}/assign-zone', [WarehouseDesignController::class, 'assignZone']);
+
+    Route::get('status/complete', [WarehouseDesignController::class, 'setComplete']);
+    Route::get('status', [WarehouseDesignController::class, 'getStatus']);
+});
+Route::get('storage/shelves/{shelfId}/details', [ItemStorageController::class, 'getShelfDetails']);
+Route::get('cabinets/{cabinetId}/summary', [ItemStorageController::class, 'getCabinetSummary']);

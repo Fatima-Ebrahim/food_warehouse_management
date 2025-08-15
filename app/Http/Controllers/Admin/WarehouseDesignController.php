@@ -14,6 +14,7 @@ use App\Http\Requests\AdminRequests\WarehouseDesignRequests\UpdateZoneRequest;
 use App\Http\Resources\WarehouseDesignResources\CabinetResource;
 use App\Http\Resources\WarehouseDesignResources\ShelfResource;
 use App\Services\AdminServices\WarehouseDesignService;
+use App\Settings\DesignSettings;
 
 class WarehouseDesignController extends Controller
 {
@@ -100,6 +101,19 @@ class WarehouseDesignController extends Controller
     {
         $this->warehouseDesignService->deleteCabinet($id);
         return response()->json(['message' => 'Cabinet deleted successfully']);
+    }
+
+    public function setComplete()
+    {
+        $this->warehouseDesignService->setComplete();
+        return response()->json(['message' => 'Design marked as complete']);
+    }
+
+    public function getStatus()
+    {
+        return response()->json([
+            'complete' =>  $this->warehouseDesignService->getComplete()
+        ]);
     }
     // TODO
     public function assignZone(AssignZoneToCoordinateRequest $request, $id)
