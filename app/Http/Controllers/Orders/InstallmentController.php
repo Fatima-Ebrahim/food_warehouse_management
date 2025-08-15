@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Orders;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\QrScannerRequest;
+use App\Http\Requests\DeliverOrderRequest;
+use App\Http\Requests\PayNextInstallmentRequest;
 use App\Services\Orders\InstallmentService;
 use App\Services\Orders\OrderService;
 use App\Services\Orders\QrService;
@@ -55,7 +56,7 @@ class InstallmentController extends Controller
         }
     }
 
-    public function payNextInstallment(QrScannerRequest $request){
+    public function payNextInstallment(PayNextInstallmentRequest $request){
         try {
             $validated = $request->validated();
             $result = $this->installmentService->payNextInstallmentAmount($validated);

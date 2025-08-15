@@ -212,13 +212,8 @@ class InstallmentService{
     }
 
     public function payNextInstallmentAmount(array $data){
-        $decoded = json_decode($data['qr_data'], true);
 
-        if (!$decoded || !isset($decoded['order_id'], $decoded['user_id'])) {
-            throw new \Exception('QR code غير صالح.');
-        }
-
-        $order = $this->orderRepository->get($decoded['order_id']);
+        $order = $this->orderRepository->get($data['order_id']);
         if ($this->orderRepository->isPaid($order) ) {
             throw new \Exception("تم تأكيد دفع كامل المبلغ مسبقاً.");
         }

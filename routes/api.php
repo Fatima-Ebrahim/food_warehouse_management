@@ -98,9 +98,10 @@ Route::middleware('auth:api')->group(function () {
     Route::get('showOrderQr/{orderId}', [OrderController::class, 'getOrderQr']);
     Route::get('getPendedOrders', [OrderController::class, 'getPendingOrders']);
     Route::put('updateOrderStatus', [OrderController::class, 'updateOrderStatus']);
-    Route::post('receiveOrder', [OrderController::class, 'receiveOrder']);
+    Route::post('deliverOrder', [OrderController::class, 'deliverOrder']);
     Route::get('getUserActiveOrders',[OrderController::class,'getUserActiveOrders']);
     Route::get('getUserPendingOrders',[OrderController::class,'getUserPendingOrders']);
+    Route::get('getOrderBatches/{orderId}',[OrderController::class,'getOrderBatches']);
 //    installment
     Route::get('getOrderInstallmentPlan/{orderId}', [InstallmentController::class, 'getOrderInstallmentPlan']);
     Route::get('getOrderInstallmentsBatchs/{orderId}', [InstallmentController::class, 'getOrderInstallmentsBatchs']);

@@ -20,7 +20,8 @@ class PurchaseReceiptItem extends Model
         'total_price',
         'unit_weight',
         'total_weight',
-
+        'expiry_date',
+        'production_date'
     ];
 
     protected $casts = [
@@ -46,6 +47,10 @@ class PurchaseReceiptItem extends Model
         return $this->hasMany(OrderBatchDetail::class,'purchase_receipt_item_id');
     }
 
+    public function OrderOfferItemBatchDetails()
+    {
+        return $this->hasMany(OrderBatchDetail::class,'purchase_receipt_item_id');
+    }
     public function storageLocation()
     {
         return $this->hasMany(BatchStorageLocation::class, 'purchase_receipt_items_id');

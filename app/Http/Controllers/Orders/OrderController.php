@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Orders;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\ConfirmOrderRequest;
-use App\Http\Requests\QrScannerRequest;
+use App\Http\Requests\DeliverOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
+use App\Models\Order;
 use App\Models\SpecialOffer;
 use App\Repositories\SpecialOfferRepository;
 use App\Services\Orders\OrderService;
@@ -99,18 +100,19 @@ class  OrderController extends Controller
 
 //تأكيد اشتلام الطلبية
 //  تأكيد الدفع اذا كان كاش وتأكيد الدفعة الاولى للتقسيط
-    public function receiveOrder(QrScannerRequest $request)
+    public function deliverOrder(DeliverOrderRequest $request)
     {
         try {
             $validated = $request->validated();
-            $result = $this->orderService->receiveOrder($validated);
+            $result = $this->orderService->deliverOrder($validated);
             return response()->json(['status' => true, 'data' => $result]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
         }
 
 
-    }    public function getUserActiveOrders()
+    }
+    public function getUserActiveOrders()
     {
         try {
            $user=auth()->user();
@@ -119,7 +121,9 @@ class  OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
         }
-    }    public function getUserPendingOrders()
+    }
+
+    public function getUserPendingOrders()
     {
         try {
             $user=auth()->user();
@@ -128,6 +132,11 @@ class  OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 400);
         }
+    }
+
+    public function getOrderBatches( $orderId){
+       return $this->orderService->getOrderBatches($orderId);
+
     }
 
 

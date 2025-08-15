@@ -217,27 +217,27 @@ class OrderService{
         return $order;
     }
 
-    public function receiveOrder(array $Data): array
+    public function deliverOrder(array $data): array
     {
+        $order = $this->orderRepository->get($data['order_id']);
+        $order = $this->orderRepository->getOrderWithRelations($order);
 
-        $decoded = json_decode($Data['qr_data'], true);
-
-        if (!$decoded || !isset($decoded['order_id'], $decoded['user_id'])) {
+        if (!$order) {
             throw new \Exception('QR code غير صالح.');
         }
 
-        $order = $this->orderRepository->getWithItems($decoded['order_id']);
-
-        if ($this->orderRepository->isPaid($order)||$this->orderRepository->isPartiallyPaid($order) ) {
+        if ($this->orderRepository->isPaid($order) || $this->orderRepository->isPartiallyPaid($order)) {
             throw new \Exception("تم تأكيد استلام هذا الطلب مسبقاً.");
         }
 
-        DB::transaction(function () use ($Data, $order) {
-            app(FifoStockDeductionService::class)->deductStockFromBatches($order);
+        DB::transaction(function () use ($data, $order) {
+            app(FifoStockDeductionService::class)->deductStockFromBatches($order, $data['batchesData']); // مرر البيانات الجاهزة من الريكويست
             $order->update([
                 'status' => $order->payment_type === 'cash' ? 'paid' : 'partially_paid'
             ]);
-            app(InstallmentService::class)->createInitialInstallment($order ,$Data['paidAmount']);
+            if($order->payment_type==="installment"){
+                app(InstallmentService::class)->createInitialInstallment($order, $data['paidAmount']);
+            }
 
         });
 
@@ -248,6 +248,9 @@ class OrderService{
         ];
     }
 
+
+
+
     public function getUserPendingOrders(User $user){
         return $this->orderRepository->getUserPendingOrders($user);
     }
@@ -255,6 +258,10 @@ class OrderService{
 
     public function getUserActiveOrders(User $user){
         return $this->orderRepository->getUserActiveOrders($user);
+    }
+
+    public function getOrderBatches($orderId){
+        return $this->orderRepository->getOrderBatches($orderId);
     }
 
 

@@ -3,8 +3,11 @@ namespace App\Services;
 use App\Http\Resources\Items\ItemResource;
 use App\Models\Item;
 use App\Repositories\CategoryRepository;
+use App\Repositories\Costumer\OrderRepository;
+use App\Repositories\Costumer\PurchaseReceiptItemRepository;
 use App\Repositories\ItemRepository;
 use App\Repositories\ItemUnitRepository;
+use App\Services\Orders\FifoStockDeductionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -14,7 +17,9 @@ class ItemService{
     public function __construct(
                                 protected ItemRepository $ItemRepository,
                                 protected ItemUnitRepository $itemUniteRepository ,
-                                protected CategoryRepository $categoryRepository ,)
+                                protected CategoryRepository $categoryRepository ,
+                                protected PurchaseReceiptItemRepository $receiptItemRepository ,
+                                protected OrderRepository $orderRepository)
     {
     }
 
@@ -95,5 +100,15 @@ class ItemService{
         $request = $this->ItemRepository->getById($id);
         return $request->image;
     }
+
+
+    public function getAllReceiptItemForItem($itemId){
+        return $this->receiptItemRepository->getAllReceiptItemForItem($itemId);
+    }
+    public function getItemFIFORecommendation($order){
+        $order =$this->orderRepository->getOrderWithRelations($order);
+        return app(FifoStockDeductionService::class)->FIFORecommendation($order);
+    }
+
 
 }

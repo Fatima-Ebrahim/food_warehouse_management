@@ -19,4 +19,9 @@ class OrderOffer extends Model
     public function offer(){
         return $this->belongsTo(SpecialOffer::class,'offer_id');
     }
+
+    public function OrderOfferItemBatchDetails()
+    {
+        return $this->hasMany(OrderBatchDetail::class,'order_offer_id');
+    }
 }

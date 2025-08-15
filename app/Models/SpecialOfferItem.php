@@ -24,4 +24,9 @@ class SpecialOfferItem extends Model
     public function itemUnit(){
         return $this->belongsTo(ItemUnit::class ,'item_unit_id');
     }
+
+    public function OrderOfferItemBatchDetails()
+    {
+        return $this->hasMany(OrderBatchDetail::class,'order_offer_Items_id');
+    }
 }

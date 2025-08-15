@@ -1,6 +1,8 @@
 <?php
 namespace App\Repositories\Costumer;
 use App\Models\Order;
+use App\Models\OrderBatchDetail;
+use App\Models\OrderOfferItemBatchDetails;
 use App\Models\User;
 
 class OrderRepository{
@@ -75,4 +77,46 @@ class OrderRepository{
         return $user->cart->orders()->where('status','pending')
             ->with(['orderItems.itemUnit.item','orderOffer.offer.Items'])->get();
     }
+
+
+    public function getOrderBatches($orderId)
+    {
+        $order = Order::findOrFail($orderId);
+
+        // دفعات المنتجات العادية
+        $regularBatches = OrderBatchDetail::with(['purchaseReceiptItem', 'orderItem.itemUnit'])
+            ->whereHas('orderItem', function($query) use ($orderId) {
+                $query->where('order_id', $orderId);
+            })
+            ->get()
+            ->map(function($detail) {
+                return [
+                    'purchase_receipt_item_id' => $detail->purchase_receipt_item_id,
+                    'item_unit_id' => $detail->orderItem->item_unit_id,
+                    'unit_id'=>$detail->orderItem->itemUnit->Unit->id,
+                    'quantity' => $detail->quantity
+                ];
+            });
+
+        // دفعات العروض
+        $offerBatches = OrderOfferItemBatchDetails::with(['purchaseReceiptItem', 'orderOfferItem.itemUnit'])
+            ->whereHas('orderOffer', function($query) use ($orderId) {
+                $query->where('order_id', $orderId);
+            })
+            ->get()
+            ->map(function($detail) {
+                return [
+                    'purchase_receipt_item_id' => $detail->purchase_receipt_item_id,
+                    'item_unit_id' => $detail->orderOfferItem->item_unit_id,
+                    'unit_id'=>$detail->orderOfferItem->itemUnit->Unit->id,
+                    'quantity' => $detail->quantity
+                ];
+            });
+
+        // دمج الكل بنفس الـ format
+        $allBatches = $regularBatches->merge($offerBatches)->values();
+
+        return response()->json($allBatches);
+    }
+
 }

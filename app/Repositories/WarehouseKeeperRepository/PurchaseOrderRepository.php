@@ -237,6 +237,10 @@ class PurchaseOrderRepository
             ->orderBy('expiry_date', 'desc')
             ->get();
     }
+
+
+
+
     /*public function createWithItems(array $orderData, array $itemsData)
    {
        return DB::transaction(function () use ($orderData, $itemsData) {
