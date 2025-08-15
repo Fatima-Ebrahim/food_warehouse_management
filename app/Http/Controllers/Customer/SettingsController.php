@@ -25,7 +25,8 @@ class SettingsController extends Controller
     {
         $this->settingsService->updatePointsSettings($request->validated());
 
-        return response()->json(['message' => 'setting updated successfully']);
+        return response()->json(['message' => 'setting updated successfully',
+        'data'=>$this->settingsService->getPointsSettings()]);
     }
     public function indexOrders()
     {
@@ -36,7 +37,8 @@ class SettingsController extends Controller
     {
         $this->settingsService->updateOrdersSettings($request->validated());
 
-        return response()->json(['message' => 'setting updated successfully']);
+        return response()->json(['message' => 'setting updated successfully',
+         'data'=>$this->settingsService->getOrdersSettings()]);
     }
     public function indexInstallments()
     {
@@ -47,6 +49,7 @@ class SettingsController extends Controller
     {
         $this->settingsService->updateInstallmentsSettings($request->validated());
 
-        return response()->json(['message' => 'setting updated successfully']);
+        return response()->json(['message' => 'setting updated successfully',
+    'data'=>$this->settingsService->getInstallmentsSettings()]);
     }
 }
