@@ -3,9 +3,12 @@ namespace App\Services\Orders;
 
 use App\Http\Resources\ShowSpecialOfferResource;
 use App\Models\SpecialOffer;
+use App\Models\User;
+use App\Notifications\NewSpecialOfferNotification;
 use App\Repositories\Costumer\CartOfferRepository;
 use App\Repositories\SpecialOfferRepository;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Notification;
 
 class SpecialOfferService{
 
@@ -22,7 +25,8 @@ class SpecialOfferService{
         $itemsData = $data['items'];
         $offer = $this->offerRepository->create($offerData);
         $this->offerRepository->attachItems($offer, $itemsData);
-
+        $users = User::all();
+        Notification::send($users, new NewSpecialOfferNotification($offer));
         return $offer;
     }
 
