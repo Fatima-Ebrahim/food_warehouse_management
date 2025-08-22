@@ -30,7 +30,8 @@ class PeriodReportsRequest extends FormRequest
             'daysAfter'=>'nullable|integer' ,
             'paymentType'=>'nullable|in:cash,installment',
             'getBy'=>'nullable|in:OrdersNumber,OrdersValue ' ,
-            'status' => 'nullable|in:received,not_received,all'
+            'status' => 'nullable|in:received,not_received,all' ,
+            'limit' => 'nullable|integer|min:1|max:500',
         ];
     }
 }
