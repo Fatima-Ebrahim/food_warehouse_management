@@ -32,29 +32,63 @@ class ItemStorageRepository
         return PurchaseReceiptItem::with('item', 'unit.storageDimension')->findOrFail($id);
     }
 
+//    public function getSuggestedZonesWithCabinets($itemId)
+//    {
+//        $suggestedZones = $this->getSuggestedZones($itemId);
+//        $zoneIds = $suggestedZones->pluck('id');
+//
+//        $cabinetsInZones = WarehouseCoordinate::whereIn('zone_id', $zoneIds)
+//            ->whereNotNull('cabinet_id')
+//            ->get(['zone_id', 'cabinet_id'])
+//            ->groupBy('zone_id')
+//            ->map(function ($group) {
+//                return $group->pluck('cabinet_id')->unique();
+//            });
+//
+//        $allCabinetIds = $cabinetsInZones->flatten()->unique();
+//        $cabinets = Cabinet::with('coordinates')->whereIn('id', $allCabinetIds)->get()->keyBy('id');
+//
+//        return $suggestedZones->map(function ($zone) use ($cabinetsInZones, $cabinets) {
+//            $cabinetIdsForZone = isset($cabinetsInZones[$zone->id]) ? $cabinetsInZones[$zone->id] : collect();
+//            $zone->cabinets = $cabinets->whereIn('id', $cabinetIdsForZone)->values();
+//            return $zone;
+//        });
+//    }
     public function getSuggestedZonesWithCabinets($itemId)
     {
         $suggestedZones = $this->getSuggestedZones($itemId);
+        if ($suggestedZones->isEmpty()) {
+            return collect();
+        }
         $zoneIds = $suggestedZones->pluck('id');
 
-        $cabinetsInZones = WarehouseCoordinate::whereIn('zone_id', $zoneIds)
-            ->whereNotNull('cabinet_id')
-            ->get(['zone_id', 'cabinet_id'])
-            ->groupBy('zone_id')
-            ->map(function ($group) {
-                return $group->pluck('cabinet_id')->unique();
+        $coordinatesInZones = WarehouseCoordinate::with('cabinet')
+            ->whereIn('zone_id', $zoneIds)
+            ->get();
+
+        $groupedCoordinates = $coordinatesInZones->groupBy('zone_id');
+
+        return $suggestedZones->map(function ($zone) use ($groupedCoordinates) {
+            $zoneCoordinates = $groupedCoordinates->get($zone->id, collect());
+
+            $cabinets = $zoneCoordinates
+                ->whereNotNull('cabinet')
+                ->pluck('cabinet')
+                ->unique('id')
+                ->values();
+
+            $zone->cabinets = $cabinets;
+            $zone->coordinates =  $zoneCoordinates->map(function ($coordinate) {
+                return [
+                    'x' => $coordinate->x,
+                    'y' => $coordinate->y,
+                    'z' => $coordinate->z,
+                ];
             });
 
-        $allCabinetIds = $cabinetsInZones->flatten()->unique();
-        $cabinets = Cabinet::with('coordinates')->whereIn('id', $allCabinetIds)->get()->keyBy('id');
-
-        return $suggestedZones->map(function ($zone) use ($cabinetsInZones, $cabinets) {
-            $cabinetIdsForZone = isset($cabinetsInZones[$zone->id]) ? $cabinetsInZones[$zone->id] : collect();
-            $zone->cabinets = $cabinets->whereIn('id', $cabinetIdsForZone)->values();
             return $zone;
         });
     }
-
     public function getSuggestedShelves($itemId, $cabinetId, $unitId)
     {
         $item = Item::findOrFail($itemId);
