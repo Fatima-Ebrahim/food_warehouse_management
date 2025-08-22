@@ -1,6 +1,9 @@
 <?php
 
-use App\Http\Controllers\Admin\LowStockReportController;
+use App\Http\Controllers\Admin\FinancialReportsController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\SalesAnalysisReportController;
+use App\Http\Controllers\Admin\SalesReportController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\WarehouseDesignController;
 use App\Http\Controllers\Auth\AuthController;
@@ -10,6 +13,7 @@ use App\Http\Controllers\Customer\ItemUnitController;
 use App\Http\Controllers\Customer\RegisterRequestController;
 use App\Http\Controllers\Customer\SettingsController;
 use App\Http\Controllers\Customer\UnitContoller;
+use App\Http\Controllers\Admin\InventoryReportController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Orders\CartItemController;
 use App\Http\Controllers\Orders\InstallmentController;
@@ -62,8 +66,8 @@ Route::get('getAllReceiptItemForItem/{itemId}',[ItemController::class,'getAllRec
 //itemUnit
 Route::post('/addItemUnit', [ItemUnitController::class, 'store']);
 Route::get('showItemUnit', [ItemUnitController::class, 'show']);
+//Route::get('showAllItemUnit/{itemId}', [ItemUnitController::class, 'showAll']);
 Route::get('showAllItemUnit/{itemId}', [ItemUnitController::class, 'showAll']);
-Route::get('leenShowAllItemUnit/{itemId}', [ItemUnitController::class, 'showAllforLeen']);
 //settings-------------------------------------
 //point
 Route::get('/showPointsSettings', [SettingsController::class, 'indexPoints']);
@@ -126,8 +130,45 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('deleteOffer/{offerId}',[specialOfferController::class,'destroy']);
     //todo update offer
 //    Route::put('updateOffer/{offerId}', [SpecialOfferController::class, 'update']);
+//todo reports
+    Route::get('salesReport', [ReportController::class, 'salesReport']);
 
 
+    Route::get('/expired-items/pdf', [PurchaseOrderController::class, 'exportExpiredItemsToPdf']);
+
+    Route::prefix('reports/inventory')->group(function () {
+        Route::get('currentStock', [InventoryReportController::class, 'currentStock']);
+        Route::get('lowStock', [InventoryReportController::class, 'lowStock']);
+        Route::get('movements', [InventoryReportController::class, 'getStockMovements']);
+        Route::get('batches', [InventoryReportController::class, 'batchesStatus']);
+        Route::get('slowMoving', [InventoryReportController::class, 'slowMoving']);
+        Route::get('topMoving', [InventoryReportController::class, 'topMoving']);
+    });
+
+
+    Route::prefix('reports/sales')->group(function () {
+        Route::get('customerStatement/{userId}', [SalesReportController::class, 'customerStatement']);
+        Route::get('byCustomer',       [SalesReportController::class, 'salesByCustomer']);
+        Route::get('byProduct',        [SalesReportController::class, 'salesByProduct']);
+        Route::get('aggregate',         [SalesReportController::class, 'aggregateSales']);
+        Route::get('byPaymentType',   [SalesReportController::class, 'salesByPaymentType']);
+        Route::get('deliveryStatus',   [SalesReportController::class, 'ordersDeliveryStatus']);
+        Route::get('topCustomers',     [SalesReportController::class, 'topCustomers']);
+    });
+
+    Route::prefix('reports/financial')->group(function () {
+        Route::get('netProfitPerItem', [FinancialReportsController::class, 'netProfitPerItem']);
+        Route::get('accountsReceivable', [FinancialReportsController::class, 'accountsReceivable']);
+        Route::get('netProfitPerOffers', [FinancialReportsController::class, 'getNetProfitPerOffers']);
+        Route::get('netProfit', [FinancialReportsController::class, 'netProfit']);
+    });
+
+    Route::prefix('reports')->group(function (){
+        Route::get('salesComparison', [SalesAnalysisReportController::class, 'compareSales']);
+        Route::get('getInventoryTurnover', [SalesAnalysisReportController::class, 'getInventoryTurnover']);
+        Route::get('getOffersImpactWithIncrease', [SalesAnalysisReportController::class, 'getOffersImpactWithIncrease']);
+
+    });
 
     ///todo search
     Route::post('search');
@@ -211,10 +252,10 @@ Route::middleware('auth:api')->group(function () {
     });
 
     //     reports
-    Route::prefix('reports')->group(function () {
-        Route::get('/low-stock', [LowStockReportController::class, 'getReport']);
-        Route::get('/expired-items/pdf', [PurchaseOrderController::class, 'exportExpiredItemsToPdf']);
-    });
+//    Route::prefix('reports')->group(function () {
+////        Route::get('/low-stock', [LowStockReportController::class, 'getReport']);
+//        Route::get('/expired-items/pdf', [PurchaseOrderController::class, 'exportExpiredItemsToPdf']);
+//    });
 });
 Route::get('/test', function () {
     return 'ok';

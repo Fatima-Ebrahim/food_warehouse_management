@@ -156,21 +156,21 @@ class PurchaseOrderController extends Controller
         }
     }
 
-    public function exportExpiredItemsToPdf()
-    {
-        try {
-            $reportData = $this->purchaseOrderService->getExpiredItemsForReport();
-
-            $pdf = PDF::loadView('reports.expired_items_report', ['report' => $reportData], [], [
-                'default_font' => 'tajawal'
-            ]);
-
-            return $pdf->stream('expired-items-report-' . now()->format('Y-m-d') . '.pdf');
-
-        } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage()], 500);
-        }
-    }
+//    public function exportExpiredItemsToPdf()
+//    {
+//        try {
+//            $reportData = $this->purchaseOrderService->getExpiredItemsForReport();
+//
+//            $pdf = PDF::loadView('reports.expired_items_report', ['report' => $reportData], [], [
+//                'default_font' => 'tajawal'
+//            ]);
+//
+//            return $pdf->stream('expired-items-report-' . now()->format('Y-m-d') . '.pdf');
+//
+//        } catch (Exception $e) {
+//            return response()->json(['success' => false, 'message' => 'حدث خطأ أثناء إنشاء التقرير: ' . $e->getMessage()], 500);
+//        }
+//    }
 
     public function getExpiredItemsJson()
     {

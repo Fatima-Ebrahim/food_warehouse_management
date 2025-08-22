@@ -1,5 +1,6 @@
 <?php
 namespace App\Repositories\Costumer;
+use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderBatchDetail;
 use App\Models\OrderOfferItemBatchDetails;
@@ -69,6 +70,8 @@ class OrderRepository{
     }
 
     public function getUserActiveOrders(User $user){
+//            if($user->cart()->doesntExist())
+//            {Cart::create($user->id);}
         return $user->cart->orders()->
             whereNotIn('status', ['pending', 'rejected'])->
                 with(['orderItems.itemUnit.item','orderOffer.offer.Items'])->get();

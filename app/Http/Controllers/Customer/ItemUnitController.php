@@ -33,15 +33,15 @@ protected ItemUnitService $itemUnitService;
         $unit= $this->itemUnitService->store($data);
         return response()->json($unit);
     }
+//    public function showAll($item_id)
+//    {
+//        $result = $this->itemUnitService->getAllItemUnits($item_id);
+//
+//        return response()->json($result, $result['success'] ? 200 : 404);
+//    }
     public function showAll($item_id)
     {
         $result = $this->itemUnitService->getAllItemUnits($item_id);
-
-        return response()->json($result, $result['success'] ? 200 : 404);
-    }
-    public function showAllforLeen($item_id)
-    {
-        $result = $this->itemUnitService->getAllItemUnitsForLeen($item_id);
 
         return response()->json($result, $result['success'] ? 200 : 404);
     }
