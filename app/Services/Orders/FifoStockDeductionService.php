@@ -22,6 +22,7 @@ class FifoStockDeductionService{
 
         // 1) المنتجات العادية
         foreach ($order->orderItems as $orderItem) {
+            $requestedQty=$orderItem->quantity;
             $recommendations[] = [
                 'type' => 'product',
                 'order_item_id'=>$orderItem->id,
@@ -29,7 +30,7 @@ class FifoStockDeductionService{
                     $orderItem->itemUnit->item,
                     $orderItem->itemUnit->unit_id,
                     $orderItem->itemUnit->conversion_factor,
-                    $orderItem->quantity
+                    $requestedQty
                 )
             ];
         }
@@ -41,14 +42,15 @@ class FifoStockDeductionService{
                 'order_offer_id'=>$orderOffer->id,
                 'offer_id' => $orderOffer->offer->id,
                 'offer_description' => $orderOffer->offer->description,
+                'offer_s_items' => []
             ];
-
             $requestedQty = $orderOffer->quantity;
+
             foreach ($orderOffer->offer->items as $offerItem) {
                 $requiredQty = $offerItem->required_quantity;
                 $item = $offerItem->itemUnit->item;
                 $quantity = $requestedQty * $requiredQty;
-                $offerData['offer_s_items'] = array_merge(
+                $offerData['offer_s_items'][] = array_merge(
                     ['order_offer_item_id' => $offerItem->id],
                     $this->getFIFOItemRecommendation(
                         $item,
@@ -109,79 +111,7 @@ class FifoStockDeductionService{
         ];
     }
 
-//    public function deductStockFromBatches(Order $order): void
-//    {
-//        foreach ($order->orderItems as $orderItem) {
-//            $item = $orderItem->itemUnit->item;
-//
-//            $qtyToDeduct = $this->orderService->calculateQuantityInBaseUnit(
-//                $item->id,
-//                $orderItem->itemUnit->unit_id,
-//                $orderItem->itemUnit->conversion_factor,
-//                $orderItem->quantity
-//            );
-//
-//
-//            // جلب الدفعات الأقدم (FIFO)
-//            $batches = $this->purchaseReceiptItemRepository->getOlderPurchasOfItem($item->id);
-//
-//            foreach ($batches as $batch) {
-//                if ($qtyToDeduct <= 0) break;
-//
-//                $available = $batch->available_quantity;
-//                $used = min($qtyToDeduct, $available);
-//
-//                // خصم الكمية
-//                $batch->decrement('available_quantity', $used);
-//                $qtyToDeduct -= $used;
-//
-//                // إنشاء سجل في order_batch_details
-//                $this->orderBatchDetailRepository->create([
-//                    'order_item_id' => $orderItem->id,
-//                    'purchase_receipt_item_id' => $batch->id,
-//                    'quantity' => $used,
-//                    ]);
-//
-//            }
-//
-//            if ($qtyToDeduct > 0) {
-//                throw new \Exception("الكمية المطلوبة للمنتج '{$item->name}' غير متوفرة بشكل كافٍ.");
-//            }
-//        }
-//    }
 
-//    public function deductStockFromBatches(array $batchesData): void
-//    {
-//        foreach ($batchesData as $batchData) {
-//            $batch = PurchaseReceiptItem::findOrFail($batchData['batch_id']);
-//
-//            if ($batch->available_quantity < $batchData['quantity']) {
-//                throw new \Exception("الكمية المطلوبة غير متوفرة في الدفعة رقم {$batch->id}.");
-//            }
-//
-//            // خصم الكمية
-//            $batch->decrement('available_quantity', $batchData['quantity']);
-//
-//            if (!empty($batchData['order_item_id'])) {
-//                // منتج عادي
-//                $this->orderBatchDetailRepository->create([
-//                    'order_item_id' => $batchData['order_item_id'],
-//                    'purchase_receipt_item_id' => $batch->id,
-//                    'quantity' => $batchData['quantity'],
-//                ]);
-//            } elseif (!empty($batchData['order_offer_id']) && !empty($batchData['order_offer_Items_id'])) {
-//                // منتج من عرض
-//                OrderOfferItemBatchDetails::create([
-//                    'order_offer_id' => $batchData['order_offer_id'],
-//                    'order_offer_Items_id' => $batchData['order_offer_Items_id'],
-//                    'purchase_receipt_item_id' => $batch->id,
-//                    'quantity' => $batchData['quantity'],
-//                ]);
-//            } else {
-//                throw new \Exception("بيانات الدفعة غير مكتملة، يجب تحديد إما order_item_id أو (order_offer_id و order_offer_Items_id).");
-//            }
-//        }
-//    }
     public function deductStockFromBatches(Order $order, array $batchesData): void
     {
         DB::transaction(function () use ($order, $batchesData) {

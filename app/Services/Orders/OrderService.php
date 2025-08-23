@@ -106,7 +106,7 @@ class OrderService{
                 'order_id' => $orderId,
                 'item_unit_id' => $itemUnit->id,
                 'quantity' => $itemData['requested_quantity'],
-                'price' => $itemUnit->selling_price,
+                'price' => $itemUnit->selling_price * $itemData['requested_quantity']
             ]);
             $cartItem->delete();
         }
@@ -231,7 +231,7 @@ class OrderService{
         }
 
         DB::transaction(function () use ($data, $order) {
-            app(FifoStockDeductionService::class)->deductStockFromBatches($order, $data['batchesData']); // مرر البيانات الجاهزة من الريكويست
+            app(FifoStockDeductionService::class)->deductStockFromBatches($order, $data['batchesData']);
             $order->update([
                 'status' => $order->payment_type === 'cash' ? 'paid' : 'partially_paid'
             ]);

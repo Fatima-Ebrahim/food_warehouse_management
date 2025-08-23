@@ -28,10 +28,10 @@ class SpecialOfferRequest extends FormRequest
             'starts_at' => ['required', 'date'],
             'description'=>['string'],
             'ends_at' => ['required', 'date', 'after_or_equal:starts_at'],
-            'items' => ['required', 'array'],
-            'items.*.item_id' => ['required', 'exists:items,id'],
-            'items.*.item_unit_id' => ['nullable', 'exists:item_units,id'],
-            'items.*.required_quantity' => ['required', 'numeric', 'min:1']
+            'offer_items' => ['required', 'array'],
+            'offer_items.*.item_id' => ['required', 'exists:items,id'],
+            'offer_items.*.item_unit_id' => ['nullable', 'exists:item_units,id'],
+            'offer_items.*.required_quantity' => ['required', 'numeric', 'min:1']
         ];
     }
 }

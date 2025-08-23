@@ -15,6 +15,10 @@ class SpecialOffer extends Model
         'description'
     ];
 
+    protected $casts = [
+        'discount_value' => 'decimal:2',
+    ];
+
     public function Items(){
         return $this->hasMany(SpecialOfferItem::class,'offer_id');
     }

@@ -4,8 +4,8 @@ use App\Http\Resources\Items\ItemResource;
 use App\Models\Item;
 use App\Repositories\CategoryRepository;
 use App\Repositories\Costumer\OrderRepository;
-use App\Repositories\Costumer\PurchaseReceiptItemRepository;
-use App\Repositories\ItemRepository;
+use App\Repositories\Costumer\PurchaseReceiptitemRepository;
+use App\Repositories\itemRepository;
 use App\Repositories\ItemUnitRepository;
 use App\Services\Orders\FifoStockDeductionService;
 use Illuminate\Support\Facades\DB;
@@ -15,10 +15,10 @@ class ItemService{
 
 
     public function __construct(
-                                protected ItemRepository $ItemRepository,
+                                protected itemRepository $itemRepository,
                                 protected ItemUnitRepository $itemUniteRepository ,
                                 protected CategoryRepository $categoryRepository ,
-                                protected PurchaseReceiptItemRepository $receiptItemRepository ,
+                                protected PurchaseReceiptitemRepository $receiptitemRepository ,
                                 protected OrderRepository $orderRepository)
     {
     }
@@ -29,7 +29,7 @@ class ItemService{
         unset($data['image']);
 
         return DB::transaction(function () use ($data, $image) {
-            $item = $this->ItemRepository->create($data);
+            $item = $this->itemRepository->create($data);
             if ($image) {
                 $imagePath = $image->store('items', 'public');
                 $item->update(['image' => $imagePath]);
@@ -55,7 +55,7 @@ class ItemService{
 
     public function update(Item $item, array $data)
     {
-        return $this->ItemRepository->update($item, $data);
+        return $this->itemRepository->update($item, $data);
     }
 
     public function getItems($category_id)
@@ -63,7 +63,7 @@ class ItemService{
         $lastLevelCats=app(CategoryService::class)->getLastLevelForCat($category_id);
         $data=collect();
         foreach ($lastLevelCats as $lastLevelCat){
-            $items=collect($this->ItemRepository->getItemsInCategory($lastLevelCat));
+            $items=collect($this->itemRepository->getItemsInCategory($lastLevelCat));
        $data=$data->merge($items->map(function ($item) {
             return [
                 'id' => $item->id,
@@ -75,7 +75,7 @@ class ItemService{
     }
 
     public function  getAllItems(){
-        $items=collect($this->ItemRepository->getAllItems());
+        $items=collect($this->itemRepository->getAllItems());
         return $items->map(function ($item) {
 
             return [
@@ -86,8 +86,9 @@ class ItemService{
         });
     }
 
-    public function getById($id){
-        $item= $this->ItemRepository->getById($id);
+    public function getById($id)
+    {
+        $item= $this->itemRepository->getById($id);
         if ($item->image) {
             $item->image_url = Storage::url($item->image);
         }
@@ -97,17 +98,24 @@ class ItemService{
 
     public function getImagePath($id)
     {
-        $request = $this->ItemRepository->getById($id);
+        $request = $this->itemRepository->getById($id);
         return $request->image;
     }
 
 
     public function getAllReceiptItemForItem($itemId){
-        return $this->receiptItemRepository->getAllReceiptItemForItem($itemId);
+        return $this->receiptitemRepository->getAllReceiptItemForItem($itemId);
     }
     public function getItemFIFORecommendation($order){
         $order =$this->orderRepository->getOrderWithRelations($order);
         return app(FifoStockDeductionService::class)->FIFORecommendation($order);
+    }
+    public function deleteItem($itemId){
+        $item=$this->itemRepository->getById($itemId);
+        if($item)
+        return $this->itemRepository->deleteItem($item);
+        else return false;
+
     }
 
 

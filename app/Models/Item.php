@@ -21,7 +21,7 @@ class Item extends Model
         'storage_conditions',
         'barcode',
         'image',
-        'supplier_id',
+        'supplier_id'
     ];
 
     protected $casts = [

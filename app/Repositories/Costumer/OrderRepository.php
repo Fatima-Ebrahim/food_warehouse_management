@@ -1,6 +1,6 @@
 <?php
 namespace App\Repositories\Costumer;
-use App\Models\BatchStorageLocation;
+use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderBatchDetail;
 use App\Models\OrderOfferItemBatchDetails;
@@ -70,6 +70,8 @@ class OrderRepository{
     }
 
     public function getUserActiveOrders(User $user){
+//            if($user->cart()->doesntExist())
+//            {Cart::create($user->id);}
         return $user->cart->orders()->
             whereNotIn('status', ['pending', 'rejected'])->
                 with(['orderItems.itemUnit.item','orderOffer.offer.Items'])->get();
@@ -80,50 +82,12 @@ class OrderRepository{
     }
 
 
-//    public function getOrderBatches($orderId)
-//    {
-//        $order = Order::findOrFail($orderId);
-//
-//        // دفعات المنتجات العادية
-//        $regularBatches = OrderBatchDetail::with(['purchaseReceiptItem', 'orderItem.itemUnit'])
-//            ->whereHas('orderItem', function($query) use ($orderId) {
-//                $query->where('order_id', $orderId);
-//            })
-//            ->get()
-//            ->map(function($detail) {
-//                return [
-//                    'purchase_receipt_item_id' => $detail->purchase_receipt_item_id,
-//                    'item_unit_id' => $detail->orderItem->item_unit_id,
-//                    'unit_id'=>$detail->orderItem->itemUnit->Unit->id,
-//                    'quantity' => $detail->quantity
-//                ];
-//            });
-//
-//        // دفعات العروض
-//        $offerBatches = OrderOfferItemBatchDetails::with(['purchaseReceiptItem', 'orderOfferItem.itemUnit'])
-//            ->whereHas('orderOffer', function($query) use ($orderId) {
-//                $query->where('order_id', $orderId);
-//            })
-//            ->get()
-//            ->map(function($detail) {
-//                return [
-//                    'purchase_receipt_item_id' => $detail->purchase_receipt_item_id,
-//                    'item_unit_id' => $detail->orderOfferItem->item_unit_id,
-//                    'unit_id'=>$detail->orderOfferItem->itemUnit->Unit->id,
-//                    'quantity' => $detail->quantity
-//                ];
-//            });
-//
-//        // دمج الكل بنفس الـ format
-//        $allBatches = $regularBatches->merge($offerBatches)->values();
-//
-//        return response()->json($allBatches);
-//    }
-
     public function getOrderBatches($orderId)
     {
         $order = Order::findOrFail($orderId);
-        $regularBatches = OrderBatchDetail::with(['purchaseReceiptItem', 'orderItem.itemUnit.Unit'])
+
+        // دفعات المنتجات العادية
+        $regularBatches = OrderBatchDetail::with(['purchaseReceiptItem', 'orderItem.itemUnit'])
             ->whereHas('orderItem', function($query) use ($orderId) {
                 $query->where('order_id', $orderId);
             })
@@ -132,11 +96,13 @@ class OrderRepository{
                 return [
                     'purchase_receipt_item_id' => $detail->purchase_receipt_item_id,
                     'item_unit_id' => $detail->orderItem->item_unit_id,
-                    'unit_id' => optional(optional($detail->orderItem->itemUnit)->Unit)->id,
+                    'unit_id'=>$detail->orderItem->itemUnit->Unit->id,
                     'quantity' => $detail->quantity
                 ];
             });
-        $offerBatches = OrderOfferItemBatchDetails::with(['purchaseReceiptItem', 'orderOfferItem.itemUnit.Unit'])
+
+        // دفعات العروض
+        $offerBatches = OrderOfferItemBatchDetails::with(['purchaseReceiptItem', 'orderOfferItem.itemUnit'])
             ->whereHas('orderOffer', function($query) use ($orderId) {
                 $query->where('order_id', $orderId);
             })
@@ -145,43 +111,17 @@ class OrderRepository{
                 return [
                     'purchase_receipt_item_id' => $detail->purchase_receipt_item_id,
                     'item_unit_id' => $detail->orderOfferItem->item_unit_id,
-                    'unit_id' => optional(optional($detail->orderOfferItem->itemUnit)->Unit)->id,
+                    'unit_id'=>$detail->orderOfferItem->itemUnit->Unit->id,
                     'quantity' => $detail->quantity
                 ];
             });
-        $allBatches = $regularBatches->merge($offerBatches);
 
-        if ($allBatches->isEmpty()) {
-            return response()->json([]);
-        }
-        $purchaseReceiptItemIds = $allBatches->pluck('purchase_receipt_item_id')->unique()->filter()->values();
-        $storageData = BatchStorageLocation::with([
-            'shelf.cabinet.coordinates.zone'
-        ])
-            ->whereIn('purchase_receipt_items_id', $purchaseReceiptItemIds)
-            ->get()
-            ->groupBy('purchase_receipt_items_id');
-        $result = $allBatches->map(function($batch) use ($storageData) {
-            $locations = $storageData->get($batch['purchase_receipt_item_id']);
-            if ($locations) {
-                $batch['storage_info'] = $locations->map(function($location) {
-                    $shelf = optional($location->shelf);
-                    $cabinet = optional($shelf->cabinet);
-                    $coordinate = optional($cabinet->coordinates)->first();
-                    $zone = optional(optional($coordinate)->zone);
+        // دمج الكل بنفس الـ format
+        $allBatches = $regularBatches->merge($offerBatches)->values();
 
-                    return [
-                        'zone' => $zone->name,
-                        'cabinet' => $cabinet->code,
-                        'shelf' => $shelf->id,
-                        'quantity_on_shelf' => $location->quantity,
-                    ];
-                });
-            } else {
-                $batch['storage_info'] = [];
-            }
-            return $batch;
-        });
-        return response()->json($result->values());
+        return response()->json($allBatches);
     }
+
+
+
 }

@@ -21,17 +21,11 @@ class OrderDetailsResource extends JsonResource
             'total_price'=>$this->total_price,
             'used_points'=>$this->used_points,
             'final_price'=>$this->final_price,
-//            'amount_paid'=>,
             'qr_code_url' => $this->qr_code_path
                 ? asset('storage/' . $this->qr_code_path)
                 : null,
-            'items' =>OrderItemResource::collection(optional($this->orderItems)),
-            'offers' => $this->whenLoaded('orderOffer', function () {
-                return $this->orderOffer->map(function ($orderOffer) {
-                    return new ShowSpecialOfferResource($orderOffer->offer);
-                });
-            }),
-
+            'items' =>OrderItemResource::collection($this->orderItems),
+            'offers' =>OrderOfferResource::collection($this->orderOffer),
         ];
     }
 }

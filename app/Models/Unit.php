@@ -17,7 +17,7 @@ class Unit extends Model
     }
 
     public function items(){
-        return $this->hasMany(Item::class,'base_unit_id');
+        return $this->hasMany(Item::class,'base_unit_id')->withTrashed();
     }
 
     public function storageDimension()

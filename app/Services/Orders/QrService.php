@@ -25,9 +25,7 @@ class QrService{
             'order' => new OrderDetailsResource($order),
         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
-        if (strlen($qrData) > 1024) {
-            throw new \Exception('QR data is too large');
-        }
+
 
         $qrCode = new QrCode($qrData);
         $qrCode->setEncoding(new Encoding('UTF-8'));

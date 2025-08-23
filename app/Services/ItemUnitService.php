@@ -50,16 +50,6 @@ class ItemUnitService
     public function getAllItemUnits($itemId): array
     {
 
-        $itemUnit = $this->itemUnitRepository->getAllItemUnitsById($itemId);
-
-        return $itemUnit ?
-            ['success' => true, 'data' => $itemUnit] :
-            ['success' => false, 'message' => 'Item unit not found'];
-
-    }
-    public function getAllItemUnitsForLeen($itemId): array
-    {
-
         $itemUnit = $this->itemUnitRepository->getAllItemUnitsByIdWithRelation($itemId);
 
         return $itemUnit ?
@@ -67,4 +57,5 @@ class ItemUnitService
             ['success' => false, 'message' => 'Item unit not found'];
 
     }
+
 }

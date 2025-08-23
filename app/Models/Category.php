@@ -6,10 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class Category extends Model
 {
-//تبعي
+
     use SoftDeletes;
-    //في لسا تبع ال IS_ACTIVE  ما بعرف وضعها
-    protected $fillable=['id','name','code','parent_id'];
+    protected $fillable=['name','parent_id'];
     protected $casts = [
         'deleted_at' => 'datetime',
     ];
