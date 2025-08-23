@@ -12,11 +12,13 @@ class OfferStatusUpdateNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $offer;
+    protected  $offer;
+    protected  $newStatus;
 
-    public function __construct(SpecialOffer $offer)
+    public function __construct(SpecialOffer $offer,  $newStatus)
     {
         $this->offer = $offer;
+        $this->newStatus = $newStatus;
     }
 
     public function via($notifiable)
@@ -24,27 +26,19 @@ class OfferStatusUpdateNotification extends Notification implements ShouldQueue
         return [FirebaseChannel::class, 'database'];
     }
 
-    private function getStatusMessage($status)
-    {
-        switch ($status) {
-            case true:
-                return 'فعّال';
-            case false:
-                return 'غير فعّال';
-            default:
-                return $status;
-        }
-    }
-
     public function toFirebase($notifiable)
     {
-        $statusMessage = $this->getStatusMessage($this->offer->status);
+        $title = 'تحديث على عرض في سلتك';
+        $body = $this->newStatus
+            ? "العرض '{$this->offer->name}' أصبح متاحاً مجدداً."
+            : "نعتذر، العرض '{$this->offer->name}' لم يعد متاحاً وتمت إزالته من سلتك.";
+
         return [
-            'title' => 'تحديث حالة عرض في سلتك',
-            'body' => "تم تغيير حالة العرض '{$this->offer->name}' إلى: {$statusMessage}",
+            'title' => $title,
+            'body' => $body,
             'data' => [
                 'offer_id' => (string)$this->offer->id,
-                'status' => $this->offer->status,
+                'status' => $this->newStatus,
                 'type' => 'offer_status_update',
             ],
         ];
@@ -52,12 +46,13 @@ class OfferStatusUpdateNotification extends Notification implements ShouldQueue
 
     public function toArray($notifiable)
     {
-        $statusMessage = $this->getStatusMessage($this->offer->status);
         return [
             'offer_id' => $this->offer->id,
             'offer_name' => $this->offer->name,
-            'status' => $this->offer->status,
-            'message' => "تم تغيير حالة العرض '{$this->offer->name}' في سلتك إلى: {$statusMessage}.",
+            'status' => $this->newStatus,
+            'message' => $this->newStatus
+                ? "تم تفعيل العرض '{$this->offer->name}' مجدداً."
+                : "تم إلغاء العرض '{$this->offer->name}' وإزالته من سلتك.",
         ];
     }
 }

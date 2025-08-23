@@ -5,6 +5,7 @@ use App\Http\Resources\ShowSpecialOfferResource;
 use App\Models\SpecialOffer;
 use App\Models\User;
 use App\Notifications\NewSpecialOfferNotification;
+use App\Notifications\OfferStatusUpdateNotification;
 use App\Repositories\Costumer\CartOfferRepository;
 use App\Repositories\SpecialOfferRepository;
 use Illuminate\Support\Arr;
@@ -31,10 +32,15 @@ class SpecialOfferService{
     }
 
     public function updateOfferStatus(array $data){
-        //todo ابعت اشعار للاشخاص يليضايفين الاوردر للسلة لما تتغير حالة الطلب
+        //todo ابعت اشعار للاشخاص يليضايفين الاوردر للسلة لما تتغير حالة الطلب تم اضافة الاشعار
         //اذا تغيرت الحالة لغير فعال بتم حذفها من السلة عند كل المستخدمين
         $userIds=$this->cartOfferRepository->getUserIdsWhoAddedOffer($data['offerId']);
+        $users = User::whereIn('id', $userIds)->get();
         $offer=$this->offerRepository->updateOfferStatus($data['offerId'],$data['status']);
+        if ($users->isNotEmpty()) {
+
+            Notification::send($users, new OfferStatusUpdateNotification($offer, $data['status']));
+        }
         return ["data"=>$offer,
                 "status"=>true];
 
