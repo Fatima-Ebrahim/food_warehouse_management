@@ -24,4 +24,5 @@ class Unit extends Model
     {
         return $this->hasOne(StorageDimension::class, 'unit_id');
     }
+
 }

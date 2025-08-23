@@ -21,10 +21,6 @@ public function zone()
 return $this->belongsTo(Zone::class);
 }
 
-public function shelf()
-{
-return $this->hasOne(Shelf::class);
-}
     public function cabinet()
     {
         return $this->belongsTo(Cabinet::class);

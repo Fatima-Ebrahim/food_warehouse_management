@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class BatchStorageService
 {
-    /**
-     * احسب كم وحدة يمكن تخزينها على رف معين من دفعة معينة
-     */
+
     public function calculateStorableUnits(Batch $batch, Shelf $shelf): int
     {
         $unit = $batch->unit;

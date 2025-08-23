@@ -84,6 +84,7 @@ Route::get('/showInstallmentsSettings', [SettingsController::class, 'indexInstal
 
 Route::middleware('auth:api')->group(function () {
 
+//    Route::post('updateProfile',[CustomerC])
 
     Route::get('getItemFIFORecommendation/{order}',[ItemController::class,'getItemFIFORecommendation']);
 

@@ -23,21 +23,9 @@ class Shelf extends Model
         return $this->belongsTo(Cabinet::class);
     }
 
-public function coordinate(): BelongsTo
-{
-return $this->belongsTo(WarehouseCoordinate::class, 'warehouse_coordinate_id');
-}
-
-
-    public function storageUnits()
-
+    public function batchStorageLocation()
     {
-        return $this->hasMany(StorageUnit::class);
-    }
-
-    public function zone(): BelongsTo
-    {
-        return $this->belongsTo(Zone::class);
+        return $this->belongsTo(BatchStorageLocation::class,'shelf_id');
     }
 
     public function getAvailableVolumeAttribute(): float
@@ -45,11 +33,6 @@ return $this->belongsTo(WarehouseCoordinate::class, 'warehouse_coordinate_id');
         return ($this->width * $this->length * $this->height) -
             $this->storageUnits->sum('used_volume');
     }
-    public function warehouseCoordinate()
-    {
-        return $this->belongsTo(WarehouseCoordinate::class);
-    }
-
 
 
     public function getAvailableWeightCapacityAttribute(): float
@@ -57,13 +40,6 @@ return $this->belongsTo(WarehouseCoordinate::class, 'warehouse_coordinate_id');
         return $this->storageUnits->sum('max_weight') -
             $this->storageUnits->sum('used_weight');
     }
-//    public function getAvailableVolumeAttribute()
-//    {
-//        return $this->storageUnits->where('is_active', true)
-//            ->sum(function($unit) {
-//                return $unit->volume - $unit->current_volume_used;
-//            });
-//    }
 
     public function getAvailableWeightAttribute()
     {

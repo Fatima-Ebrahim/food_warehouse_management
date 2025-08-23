@@ -19,9 +19,7 @@ class Supplier extends Model
         'supplier_id',
     ];
 
-    protected $casts = [
 
-    ];
 
      const TYPES = [
         'individual' => 'Individual',

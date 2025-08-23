@@ -26,10 +26,6 @@ return $this->hasMany(WarehouseCoordinate::class);
 
 
 
-    public function shelves(): HasMany
-    {
-        return $this->hasMany(Shelf::class);
-    }
 
     public function getOccupancyRateAttribute(): float
     {

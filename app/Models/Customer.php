@@ -14,6 +14,6 @@ class Customer extends Model
 
     public function pointTransactions()
     {
-        return $this->hasMany(PointTransaction::class,'user_id');
+        return $this->hasMany(PointTransaction::class,'customer_id');
     }
 }

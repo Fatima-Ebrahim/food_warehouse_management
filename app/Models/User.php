@@ -58,10 +58,6 @@ class User extends Authenticatable
         return $this->hasOne(Cart::class,'user_id');
     }
 
-    public function pointTransactions()
-    {
-        return $this->hasMany(PointTransaction::class,'user_id');
-    }
     public function customer(){
         return $this->hasOne(Customer::class,'user_id');
     }
