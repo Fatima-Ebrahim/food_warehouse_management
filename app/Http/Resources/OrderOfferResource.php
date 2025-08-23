@@ -39,7 +39,7 @@ class OrderOfferResource extends JsonResource
                             $item->required_quantity*$this->quantity
                     ),
                     'item_id'=>$item->item_id,
-                    'item'=>Item::query()->find($item->item_id)->name,
+                    'item'=>$item->item->name,
                     'item_unit_id'=> $item->item_unit_id ,
 
                 ];

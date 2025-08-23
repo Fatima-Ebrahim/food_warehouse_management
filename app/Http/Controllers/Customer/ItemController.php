@@ -88,4 +88,15 @@ class ItemController extends Controller
         return response()->json(['data'=>$receipts],200);
     }
 
+    public function deleteItem( $itemId){
+        $bool=$this->itemService->deleteItem($itemId);
+        if($bool)
+        return response()->json(['status '=>true ,
+                                'message'=>'item deleted successfully'] ,200);
+        else{
+            return response()->json(['status '=>false ,
+                'message'=>'item not found'] ,200);
+        }
+    }
+
 }

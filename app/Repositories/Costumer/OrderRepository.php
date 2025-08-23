@@ -122,4 +122,6 @@ class OrderRepository{
         return response()->json($allBatches);
     }
 
+
+
 }

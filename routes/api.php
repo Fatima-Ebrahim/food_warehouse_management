@@ -63,6 +63,7 @@ Route::get('/showAllItems', [ItemController::class, 'getAllItems']);
 Route::get('itemDetails/{id}', [ItemController::class, 'getItemById']);
 Route::get('showItemImage/{id}', [ItemController::class, 'showItemImage']);
 Route::get('getAllReceiptItemForItem/{itemId}',[ItemController::class,'getAllReceiptItemForItem']);
+Route::delete('deleteItem/{itemId}',[ItemController::class,'deleteItem']);
 //itemUnit
 Route::post('/addItemUnit', [ItemUnitController::class, 'store']);
 Route::get('showItemUnit', [ItemUnitController::class, 'show']);

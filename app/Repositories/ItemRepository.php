@@ -34,6 +34,10 @@ class ItemRepository{
         return Item::query()->find($id);
     }
     public function getBaseUnitId($itemId){
-        return Item::find($itemId)->base_unit_id;
+        return Item::withTrashed()->find($itemId)->base_unit_id;
+    }
+
+    public function deleteItem(Item $item){
+        return $item->delete();
     }
 }
