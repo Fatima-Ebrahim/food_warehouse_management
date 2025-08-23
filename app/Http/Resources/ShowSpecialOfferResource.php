@@ -22,6 +22,7 @@ class ShowSpecialOfferResource extends JsonResource
           'description'=>$this->description,
           'starts_at'=>$this->starts_at,
           'ends_at'=>$this->ends_at,
+            'is_valid'=>$this->is_valid,
           'offer_items' =>$this->items->map(function ($item) {
               return [
                     'offer_item_id'=>$item->id ,
