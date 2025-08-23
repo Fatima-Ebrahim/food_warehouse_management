@@ -18,8 +18,8 @@ class SpecialOfferService{
     {
 
         //todo ابعت اشعار لكل المستخدمين انو انضاف عرض جديد
-        $offerData = Arr::except($data, ['items']);
-        $itemsData = $data['items'];
+        $offerData = Arr::except($data, ['offer_items']);
+        $itemsData = $data['offer_items'];
         $offer = $this->offerRepository->create($offerData);
         $this->offerRepository->attachItems($offer, $itemsData);
 
@@ -53,13 +53,13 @@ class SpecialOfferService{
 
     public function updateSpecialOffer(SpecialOffer $offer, array $data): SpecialOffer
     {
-        $offerData = Arr::except($data, ['items']);
-        $itemsData = $data['items'];
+        $offerData = Arr::except($data, ['offer_items']);
+        $itemsData = $data['offer_items'];
 
-        // تحديث بيانات العرض
+
         $this->offerRepository->update($offer, $offerData);
 
-        // حذف العناصر القديمة وإضافة الجديدة
+
         $this->offerRepository->deleteItems($offer);
         $this->offerRepository->attachItems($offer, $itemsData);
 

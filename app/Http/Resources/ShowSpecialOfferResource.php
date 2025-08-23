@@ -18,7 +18,7 @@ class ShowSpecialOfferResource extends JsonResource
         return [
           'offer_id'=>$this->id ,
           'discount_type'=> $this->discount_type ,
-          'discount_value' =>$this->discount_value ,
+          'discount_value' =>(float)$this->discount_value ,
           'description'=>$this->description,
           'starts_at'=>$this->starts_at,
           'ends_at'=>$this->ends_at,
