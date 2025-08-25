@@ -14,6 +14,7 @@ use App\Http\Controllers\Customer\RegisterRequestController;
 use App\Http\Controllers\Customer\SettingsController;
 use App\Http\Controllers\Customer\UnitContoller;
 use App\Http\Controllers\Admin\InventoryReportController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Orders\CartItemController;
 use App\Http\Controllers\Orders\InstallmentController;
@@ -172,6 +173,8 @@ Route::middleware('auth:api')->group(function () {
 
     });
 
+    Route::get('profile',[CustomerController::class,'getProfile']);
+    Route::post('updateProfile',[CustomerController::class,'updateProfile']);
     ///todo search
     Route::post('search');
 
