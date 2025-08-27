@@ -14,6 +14,10 @@ class Cabinet extends Model
         'shelves_count',
     ];
 
+    public function warehouseCoordinate()
+    {
+        return $this->belongsTo(WarehouseCoordinate::class);
+    }
 
     public function shelves()
     {
