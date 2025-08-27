@@ -124,16 +124,15 @@ Route::middleware('auth:api')->group(function () {
     Route::put('updateAdditionalOrderStatus/{id}');
 
 
-    //todo special offers
+
     Route::Post('addSpecialOrder',[specialOfferController::class,'create']);
     Route::get('showActiveOffers',[specialOfferController::class,'getActiveOffers']);
     Route::get('showInactiveOffers',[specialOfferController::class,'getInactiveOffers']);
     Route::get('showAllOffers',[specialOfferController::class,'getAllOffers']);
     Route::put('updateOfferStatus',[specialOfferController::class,'updateOfferStatus']);
     Route::delete('deleteOffer/{offerId}',[specialOfferController::class,'destroy']);
-    //todo update offer
 //    Route::put('updateOffer/{offerId}', [SpecialOfferController::class, 'update']);
-//todo reports
+
     Route::get('salesReport', [ReportController::class, 'salesReport']);
 
 
@@ -144,6 +143,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('lowStock', [InventoryReportController::class, 'lowStock']);
         Route::get('movements', [InventoryReportController::class, 'getStockMovements']);
         Route::get('batches', [InventoryReportController::class, 'batchesStatus']);
+        //حط حد اول 10
         Route::get('slowMoving', [InventoryReportController::class, 'slowMoving']);
         Route::get('topMoving', [InventoryReportController::class, 'topMoving']);
     });

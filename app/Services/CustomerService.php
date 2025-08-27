@@ -11,8 +11,8 @@ class CustomerService{
     {
     }
 
-    public function getProfile(User $user){
-        return $this->customerRepository->getProfile($user);
+    public function getProfile($userId){
+        return $this->customerRepository->getProfile($userId);
     }
     public function updateProfile($user, array $data): array
     {
