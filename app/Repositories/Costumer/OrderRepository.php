@@ -127,7 +127,6 @@ class OrderRepository{
     {
         $order = Order::findOrFail($orderId);
 
-        // دفعات المنتجات العادية
         $regularBatches = OrderBatchDetail::with(['purchaseReceiptItem', 'orderItem.itemUnit.Unit'])
             ->whereHas('orderItem', function($query) use ($orderId) {
                 $query->where('order_id', $orderId);
@@ -142,7 +141,6 @@ class OrderRepository{
                 ];
             });
 
-        // دفعات العروض
         $offerBatches = OrderOfferItemBatchDetails::with(['purchaseReceiptItem', 'orderOfferItem.itemUnit.Unit'])
             ->whereHas('orderOffer', function($query) use ($orderId) {
                 $query->where('order_id', $orderId);
@@ -157,36 +155,28 @@ class OrderRepository{
                 ];
             });
 
-        // دمج الكل بنفس الـ format
         $allBatches = $regularBatches->merge($offerBatches);
 
         if ($allBatches->isEmpty()) {
             return response()->json([]);
         }
 
-        // --- يبدأ التعديل هنا ---
-
-        // 1. استخلاص كل معرفات purchase_receipt_item_id الفريدة
         $purchaseReceiptItemIds = $allBatches->pluck('purchase_receipt_item_id')->unique()->filter()->values();
 
-        // 2. جلب معلومات التخزين المرتبطة بها دفعة واحدة مع تحميل العلاقات (رف -> خزانة -> إحداثيات -> منطقة)
         $storageData = BatchStorageLocation::with([
             'shelf.cabinet.coordinates.zone'
         ])
             ->whereIn('purchase_receipt_items_id', $purchaseReceiptItemIds)
             ->get()
-            ->groupBy('purchase_receipt_items_id'); // تجميع النتائج حسب معرف الدفعة لتسهيل الوصول
+            ->groupBy('purchase_receipt_items_id');
 
-        // 3. إضافة معلومات التخزين إلى كل دفعة منتج
         $result = $allBatches->map(function($batch) use ($storageData) {
             $locations = $storageData->get($batch['purchase_receipt_item_id']);
 
-            // قد يتم تخزين الدفعة في أكثر من مكان، لذلك نعيد مصفوفة
             if ($locations) {
                 $batch['storage_info'] = $locations->map(function($location) {
                     $shelf = optional($location->shelf);
                     $cabinet = optional($shelf->cabinet);
-                    // الخزانة قد تكون في أكثر من إحداثي، نأخذ الأول كمرجع للمنطقة
                     $coordinate = optional($cabinet->coordinates)->first();
                     $zone = optional(optional($coordinate)->zone);
 
@@ -198,12 +188,12 @@ class OrderRepository{
                     ];
                 });
             } else {
-                $batch['storage_info'] = []; // إذا لم يتم تخزين المنتج بعد
+                $batch['storage_info'] = [];
             }
             return $batch;
         });
 
-        // --- ينتهي التعديل هنا ---
+
 
         return response()->json($result->values());
     }
