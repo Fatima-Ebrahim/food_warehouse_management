@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Costumer;
 
+use App\Models\Customer;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +35,10 @@ class CustomerRepository{
         $user->save();
 
         return $user;
+    }
+
+    public function getCustomers(){
+        return Customer::all()->load('user');
     }
 
 

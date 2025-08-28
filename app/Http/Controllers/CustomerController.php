@@ -18,10 +18,17 @@ class CustomerController extends Controller
         $userId = auth()->user()->id;
         return response()->json(['data'=>$this->service->getProfile($userId )]) ;
     }
+
     public function UpdateProfile(UpdateProfileRequest $request){
         $user = Auth::user();
-        $result = $this->service->updateProfile($user, $request->validated());
+        $this->service->updateProfile($user, $request->validated());
         return response()->json(['message'=>'profile updated successfully']           );
+
+    }
+    public function getCustomers(){
+
+        $customers = $this->service->getCustomers();
+        return response()->json(['customers'=>$customers]           );
 
     }
 }
