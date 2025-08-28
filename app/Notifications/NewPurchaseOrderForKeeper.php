@@ -36,4 +36,16 @@ class NewPurchaseOrderForKeeper extends Notification
             ]
         ];
     }
+    public function toArray($notifiable): array
+    {
+        return [
+            'receiver_id' => $notifiable->id,
+            'title' => 'طلبية شراء جديدة بانتظار المعالجة',
+            'body' => "تم إنشاء طلبية شراء جديدة برقم {$this->purchaseOrder->po_number}.",
+            'data' => [
+                'order_id' => (string) $this->purchaseOrder->id,
+                'screen' => 'PendingOrders'
+            ]
+        ];
+    }
 }
