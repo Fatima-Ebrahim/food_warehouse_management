@@ -15,8 +15,8 @@ class CustomerController extends Controller
     }
 
     public function getProfile(){
-        $user = auth()->user();
-        return response()->json(['data'=>$this->service->getProfile($user )]) ;
+        $userId = auth()->user()->id;
+        return response()->json(['data'=>$this->service->getProfile($userId )]) ;
     }
     public function UpdateProfile(UpdateProfileRequest $request){
         $user = Auth::user();

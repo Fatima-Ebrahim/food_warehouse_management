@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Hash;
 
 class CustomerRepository{
 
-    public function getProfile(User $user){
-        return $user->with('customer')->get();
-    }
 
+    public function getProfile($userid){
+        return User::with('customer')->find($userid);
+    }
     public function updateProfile(User $user, array $data)
     {
         if (isset($data['name'])) {
