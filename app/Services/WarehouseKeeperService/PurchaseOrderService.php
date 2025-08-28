@@ -287,4 +287,18 @@ class PurchaseOrderService
             ];
         });
     }
+    public function handleDamagedItems( $receiptItemId, array $locations, ?string $reason)
+    {
+
+        return $this->purchaseOrderRepository->markItemsAsDamaged($receiptItemId, $locations, $reason);
+    }
+    public function handleRemoveQuantityFromShelf(array $data)
+    {
+        return $this->purchaseOrderRepository->removeBatchQuantityFromShelf(
+            $data['purchase_receipt_item_id'],
+            $data['shelf_id'],
+            $data['quantity'],
+            $data['unit_id']
+        );
+    }
 }

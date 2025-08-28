@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\WarehouseKeeper;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\RemoveQuantityFromShelfRequest;
 use App\Http\Requests\WarehouseKeeperRequests\PurchaseOrderRequests\GetItemsBySupplierRequest;
 use App\Http\Requests\WarehouseKeeperRequests\PurchaseOrderRequests\ProcessPartialReceiptRequest;
+use App\Http\Requests\ReportDamagedItemRequest;
 use App\Http\Requests\WarehouseKeeperRequests\PurchaseOrderRequests\StorePurchaseOrderRequest;
 use App\Http\Requests\WarehouseKeeperRequests\PurchaseOrderRequests\UpdateExpiryDateRequest;
 use App\Http\Requests\WarehouseKeeperRequests\PurchaseOrderRequests\UpdateProductionDateRequest;
@@ -192,5 +194,37 @@ class PurchaseOrderController extends Controller
     {
         $items = $this->purchaseOrderService->getItemsBySupplier($supplierId, $request->validated());
         return response()->json(['success' => true, 'data' => $items, 'message' => 'Items retrieved successfully for supplier ' . $supplierId]);
+    }
+    public function reportDamage(ReportDamagedItemRequest $request, $receiptItemId)
+    {
+        try {
+            $validatedData = $request->validated();
+
+            $this->purchaseOrderService->handleDamagedItems(
+                $receiptItemId,
+                $validatedData['locations'],
+                $validatedData['reason'] ?? null
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Damaged items were reported and inventory has been updated successfully.'
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to report damaged items: ' . $e->getMessage()
+            ], 400);
+        }
+    }
+    public function removeQuantityFromShelf(RemoveQuantityFromShelfRequest $request)
+    {
+        try {
+            $this->purchaseOrderService->handleRemoveQuantityFromShelf($request->validated());
+            return response()->json(['success' => true, 'message' => 'تمت إزالة الكمية من الرف وتحديث المخزون بنجاح.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'فشلت العملية: ' . $e->getMessage()], 400);
+        }
     }
 }

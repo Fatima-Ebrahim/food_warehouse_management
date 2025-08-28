@@ -1,4 +1,6 @@
+#helper
 في Laravel، عند تعريف مهمة مجدولة مثل:
+
 
 ```php
 Schedule::command('stocktake:dispatch-scheduled')->daily();
@@ -89,3 +91,7 @@ php artisan view:clear
 جسون
 تقرير pdf
 -------------------------------------------
+.env تحديث
+
+php artisan config:clear
+php artisan config:cache
