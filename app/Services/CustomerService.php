@@ -35,5 +35,10 @@ class CustomerService{
     }
 
 
+    public function getCustomers(){
+        return $this->customerRepository->getCustomers();
+    }
+
+
 
 }

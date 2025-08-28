@@ -81,6 +81,7 @@ Route::get('/showOrdersSettings', [SettingsController::class, 'indexOrders']);
 //Installments
 Route::put('/updateInstallmentsSettings', [SettingsController::class, 'updateInstallments']);
 Route::get('/showInstallmentsSettings', [SettingsController::class, 'indexInstallments']);
+Route::get('customers',[CustomerController::class,'getCustomers']);
 //-------------------------------------------------------------------------------------------
 
 Route::middleware('auth:api')->group(function () {
