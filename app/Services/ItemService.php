@@ -10,6 +10,7 @@ use App\Repositories\ItemUnitRepository;
 use App\Services\Orders\FifoStockDeductionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use function Kreait\Firebase\Database\push;
 
 class ItemService{
 
@@ -60,17 +61,20 @@ class ItemService{
 
     public function getItems($category_id)
     {
-        $lastLevelCats=app(CategoryService::class)->getLastLevelForCat($category_id);
-        $data=collect();
-        foreach ($lastLevelCats as $lastLevelCat){
-            $items=collect($this->itemRepository->getItemsInCategory($lastLevelCat));
-       $data=$data->merge($items->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'name'=>$item->name,
-                'image' => $item->image,
-            ];
-        }));}
+        $lastLevelCats = app(CategoryService::class)->getLastLevelForCat($category_id);
+        $data = collect();
+        foreach ($lastLevelCats as $lastLevelCat) {
+            $items = $this->itemRepository->getItemsInCategory($lastLevelCat['id']);
+
+            $data = $data->merge($items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'image' => $item->image,
+                ];
+            }));
+        }
+
         return $data;
     }
 

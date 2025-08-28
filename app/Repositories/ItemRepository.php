@@ -8,9 +8,9 @@ use App\Models\Unit;
 class ItemRepository{
 
     public function getItemsInCategory($category_id){
-        return Category::query()->find($category_id)->items;
+        $category = Category::with('items')->find($category_id);
+        return $category ? $category->items : collect();
     }
-
     public function create(array $data)
     {
         return Item::query()->create($data);

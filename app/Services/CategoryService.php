@@ -98,14 +98,18 @@ class CategoryService{
     }
 
     public function getLastLevelForCat($catId) {
-        $SubCategories = $this->CategoryRepository->getSubCategory($catId);
         $data = collect();
+        $SubCategories = $this->CategoryRepository->getSubCategory($catId);
+        if($SubCategories->isEmpty()){
+            $data->push($this->CategoryRepository->getCategoryById($catId));
+        }
+
 
         $SubCategories->each(function ($subCategory) use (&$data) {
             $children = $this->CategoryRepository->hasChildren($subCategory->id);
 
             if (!$children) {
-                $data->push($subCategory->id);
+                $data->push($subCategory);
             } else {
                 $childResults = $this->getLastLevelForCat($subCategory->id);
                 $data = $data->merge($childResults);
