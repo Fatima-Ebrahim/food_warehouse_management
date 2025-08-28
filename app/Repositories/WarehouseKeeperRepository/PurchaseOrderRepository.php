@@ -3,7 +3,10 @@
 namespace App\Repositories\WarehouseKeeperRepository;
 
 use App\Actions\UpdateItemQuantitiesAction;
+use App\Models\BatchStorageLocation;
+use App\Models\DamagedItem;
 use App\Models\Item;
+use App\Models\ItemUnit;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseReceiptItem;
 use Illuminate\Support\Facades\DB;
@@ -269,4 +272,107 @@ class PurchaseOrderRepository
            return $purchaseOrder->load('purchaseItems');
        });
    }*/
+    public function markItemsAsDamaged($receiptItemId, array $locations, ?string $reason)
+    {
+        return DB::transaction(function () use ($receiptItemId, $locations, $reason) {
+            $receiptItem = PurchaseReceiptItem::with('item')->where('id', $receiptItemId)->lockForUpdate()->firstOrFail();
+
+            // Get conversion factor for the batch's own unit
+            $batchUnitFactor = ItemUnit::where('item_id', $receiptItem->item_id)
+                    ->where('unit_id', $receiptItem->unit_id)
+                    ->value('conversion_factor') ?? 1;
+
+            $totalDamagedInBaseUnit = 0;
+
+            foreach ($locations as $locationData) {
+                // Get conversion factor for the user-provided unit
+                $userUnitFactor = ItemUnit::where('item_id', $receiptItem->item_id)
+                        ->where('unit_id', $locationData['unit_id'])
+                        ->value('conversion_factor') ?? 1;
+
+                // Convert user's quantity to base unit, then to batch's unit
+                $quantityInBase = $locationData['quantity'] * $userUnitFactor;
+                $quantityInBatchUnit = $quantityInBase / $batchUnitFactor;
+
+                $totalDamagedInBaseUnit += $quantityInBase;
+
+                // Deduct from shelf (in batch's unit)
+                $storageLocation = BatchStorageLocation::where('purchase_receipt_items_id', $receiptItemId)
+                    ->where('shelf_id', $locationData['shelf_id'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$storageLocation || $quantityInBatchUnit > $storageLocation->quantity) {
+                    throw new \Exception("كمية غير كافية على الرف {$locationData['shelf_id']}.");
+                }
+
+                $storageLocation->quantity -= $quantityInBatchUnit;
+                if ($storageLocation->quantity > 0.0001) { // Use a small threshold for float comparison
+                    $storageLocation->save();
+                } else {
+                    $storageLocation->delete();
+                }
+            }
+
+            // Calculate total damaged quantity in the batch's unit
+            $totalDamagedInBatchUnit = $totalDamagedInBaseUnit / $batchUnitFactor;
+
+            // Create a record in the damaged_items table
+            DamagedItem::create([
+                'purchase_receipt_item_id' => $receiptItem->id,
+                'quantity' => $totalDamagedInBatchUnit, // Log quantity in the batch's unit for consistency
+                'reason' => $reason,
+                'reported_at' => now(),
+            ]);
+
+            // Decrement the available quantity in the purchase_receipt_items table
+            $receiptItem->available_quantity -= $totalDamagedInBatchUnit;
+            $receiptItem->save();
+
+            // Decrement the Total_Available_Quantity in the items table (using BASE unit quantity)
+            $item = $receiptItem->item;
+            $item->Total_Available_Quantity -= $totalDamagedInBaseUnit;
+            $item->save();
+
+            return $receiptItem;
+        });}
+    public function removeBatchQuantityFromShelf($receiptItemId, $shelfId, $quantity, $unitId)
+    {
+        return DB::transaction(function () use ($receiptItemId, $shelfId, $quantity, $unitId) {
+            $receiptItem = PurchaseReceiptItem::with('item')->where('id', $receiptItemId)->lockForUpdate()->firstOrFail();
+
+            // --- Unit Conversion ---
+            $userUnitFactor = ItemUnit::where('item_id', $receiptItem->item_id)->where('unit_id', $unitId)->value('conversion_factor') ?? 1;
+            $shelfUnitFactor = ItemUnit::where('item_id', $receiptItem->item_id)->where('unit_id', $receiptItem->unit_id)->value('conversion_factor') ?? 1;
+
+            $quantityInBaseUnit = $quantity * $userUnitFactor;
+            $quantityInShelfUnit = $quantityInBaseUnit / $shelfUnitFactor;
+
+            // 1. Update Shelf Stock
+            $storageLocation = BatchStorageLocation::where('purchase_receipt_items_id', $receiptItemId)
+                ->where('shelf_id', $shelfId)->lockForUpdate()->firstOrFail();
+
+            if ($quantityInShelfUnit > $storageLocation->quantity) {
+                throw new \Exception("الكمية المطلوبة تتجاوز المخزون على الرف.");
+            }
+            $storageLocation->quantity -= $quantityInShelfUnit;
+
+            if ($storageLocation->quantity > 0.0001) {
+                $storageLocation->save();
+            } else {
+                $storageLocation->delete();
+            }
+
+            // 2. Update Batch Stock
+            $receiptItem->available_quantity -= $quantityInShelfUnit;
+            $receiptItem->save();
+
+            // 3. Update Main Item Stock
+            $item = $receiptItem->item;
+            $item->Total_Available_Quantity -= $quantityInBaseUnit;
+            $item->save();
+
+            return true;
+        });
+    }
 }

@@ -30,14 +30,14 @@ class DatabaseSeeder extends Seeder
         $this->call(PointsSettingsSeeder::class);
         $this->call(OrderSettingsSeeder::class);
         $this->call(InstallmentSettingsSeeder::class);
-        $this->call([
-            CategorySeeder::class,
-            SupplierSeeder::class,
+//        $this->call([
+//            CategorySeeder::class,
+//            SupplierSeeder::class,
 //            UnitSeeder::class,
 //            ItemSeeder::class,
 //            ItemUnitSeeder::class,
-        ]);
-        $this->call([
+//        ]);
+//        $this->call([
 //            UserSeeder::class,
 //            CartSeeder::class,
 //            CartItemSeeder::class,
@@ -47,7 +47,7 @@ class DatabaseSeeder extends Seeder
 //            InstallmentsSeeder::class,
 //            CustomerSeeder::class,
 //            PointTransactionsSeeder::class,
-        ]);
+//        ]);
 
 
         // User::factory(10)->create();

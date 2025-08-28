@@ -261,7 +261,8 @@ Route::middleware('auth:api')->group(function () {
 ////        Route::get('/low-stock', [LowStockReportController::class, 'getReport']);
 //        Route::get('/expired-items/pdf', [PurchaseOrderController::class, 'exportExpiredItemsToPdf']);
 //    });
-});
+    Route::post('/purchase-receipt-items/{receiptItemId}/report-damage', [PurchaseOrderController::class, 'reportDamage']);
+});Route::post('/shelves/remove-quantity', [PurchaseOrderController::class, 'removeQuantityFromShelf']);
 Route::get('/test', function () {
     return 'ok';
 });
