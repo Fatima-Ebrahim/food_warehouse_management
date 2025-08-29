@@ -140,8 +140,13 @@ class ItemStorageRepository
             ->get();
     }
 
-    public function getStoredLocationsOnShelves(array $shelfIds)
+
+    public function getStoredLocationsOnShelves( $shelfIds)
     {
+        if (empty($shelfIds)) {
+            return collect();
+        }
+
         return BatchStorageLocation::whereIn('shelf_id', $shelfIds)
             ->with(['purchaseReceiptItem.item:id,name,code', 'purchaseReceiptItem.unit:id,name'])
             ->get();
