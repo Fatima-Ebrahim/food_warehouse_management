@@ -64,7 +64,7 @@ php artisan schedule:run
 //
 
 php artisan stock:check-low
-
+ stocktake:dispatch-scheduled
 
 //====
 UPDATE purchase_receipt_items SET available_quantity = 0 WHERE item_id = 1

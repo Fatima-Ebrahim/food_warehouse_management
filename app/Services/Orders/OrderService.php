@@ -191,31 +191,31 @@ class OrderService{
         return $this->orderRepository->getAllPendingOrders();
     }
 
-    public function updateOrderStatus($order_id, $status)
-    {
-        $order = $this->orderRepository->getWithItems($order_id);
-        $user = $this->orderRepository->getOrderOwner($order);
-
-        if ($status === 'rejected') {
-            DB::transaction(function () use ($order) {
-                foreach ($order->orderItems as $orderItem) {
-                    if (!$orderItem->itemUnit || !$orderItem->itemUnit->item) {
-                        throw new \Exception('بيانات العنصر غير مكتملة');
+        public function updateOrderStatus($order_id, $status)
+        {
+            $order = $this->orderRepository->getWithItems($order_id);
+            $userId = $this->orderRepository->getOrderOwner($order);
+            $user = User::find($userId);
+            if ($status === 'rejected') {
+                DB::transaction(function () use ($order) {
+                    foreach ($order->orderItems as $orderItem) {
+                        if (!$orderItem->itemUnit || !$orderItem->itemUnit->item) {
+                            throw new \Exception('بيانات العنصر غير مكتملة');
+                        }
+                        $item = $orderItem->itemUnit->item;
+                        $item->increment('Total_Available_Quantity', $orderItem->quantity);
                     }
-                    $item = $orderItem->itemUnit->item;
-                    $item->increment('Total_Available_Quantity', $orderItem->quantity);
-                }
-            });
+                });
+            }
+
+            $this->orderRepository->updateStatus($order, $status);
+
+            if ($user) {
+                $user->notify(new OrderStatusUpdateNotification($order, $status));
+            }
+
+            return $order;
         }
-
-        $this->orderRepository->updateStatus($order, $status);
-
-        if ($user) {
-            $user->notify(new OrderStatusUpdateNotification($order, $status));
-        }
-
-        return $order;
-    }
 
     public function deliverOrder(array $data): array
     {

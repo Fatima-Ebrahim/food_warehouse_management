@@ -21,14 +21,14 @@ class NewSpecialOfferNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return [FirebaseChannel::class];
+        return [FirebaseChannel::class, 'database'];
     }
 
     public function toFirebase($notifiable)
     {
         return [
             'title' => 'عرض خاص جديد!',
-            'body' => "لا تفوت العرض الجديد: " . $this->offer->name,
+            'body' => "لا تفوت العرض الجديد  " . $this->offer->name,
             'data' => [
                 'offer_id' => (string)$this->offer->id,
                 'type' => 'new_special_offer',
@@ -41,7 +41,7 @@ class NewSpecialOfferNotification extends Notification implements ShouldQueue
         return [
             'offer_id' => $this->offer->id,
             'offer_name' => $this->offer->name,
-            'message' => "تمت إضافة عرض خاص جديد: " . $this->offer->name,
+            'message' => "تمت إضافة عرض خاص جديد" . $this->offer->name,
         ];
     }
 }

@@ -364,13 +364,13 @@ class PurchaseOrderRepository
             }
 
             // 2. Update Batch Stock
-            $receiptItem->available_quantity -= $quantityInShelfUnit;
-            $receiptItem->save();
+//            $receiptItem->available_quantity -= $quantityInBaseUnit;
+//            $receiptItem->save();
 
             // 3. Update Main Item Stock
-            $item = $receiptItem->item;
-            $item->Total_Available_Quantity -= $quantityInBaseUnit;
-            $item->save();
+//            $item = $receiptItem->item;
+//            $item->Total_Available_Quantity -= $quantityInBaseUnit;
+//            $item->save();
 
             return true;
         });
