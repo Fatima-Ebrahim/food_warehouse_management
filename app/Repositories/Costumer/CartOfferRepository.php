@@ -42,6 +42,14 @@ class CartOfferRepository{
             ->toArray();
     }
 
+    public function getOffersWhichHaveItem($itemId){
+        return SpecialOffer::whereHas('items', function($query) use ($itemId) {
+            $query->where('item_id', $itemId);
+        })->with('items')->get();
+    }
+
+//    public
+//
 
 
 }

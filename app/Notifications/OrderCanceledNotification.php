@@ -1,0 +1,47 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Broadcasting\FirebaseChannel;
+use App\Models\Order;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Notification;
+
+class OrderCanceledNotification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    protected $order;
+
+    public function __construct(Order $order)
+    {
+        $this->order = $order;
+    }
+
+    public function via($notifiable)
+    {
+        return [FirebaseChannel::class, 'database'];
+    }
+
+    public function toFirebase($notifiable)
+    {
+        return [
+            'title' => 'إلغاء الطلب',
+            'body'  => "طلبك رقم {$this->order->id} تم إلغاؤه تلقائياً بسبب التأخير.",
+            'data'  => [
+                'order_id' => (string)$this->order->id,
+                'type'     => 'order_canceled',
+            ],
+        ];
+    }
+
+    public function toArray($notifiable)
+    {
+        return [
+            'order_id'   => $this->order->id,
+            'order_code' => $this->order->code ?? null,
+            'message'    => "طلبك رقم {$this->order->id} تم إلغاؤه تلقائياً بسبب التأخير.",
+        ];
+    }
+}

@@ -29,7 +29,7 @@ class ShowSpecialOfferResource extends JsonResource
                     'original_item_id'=>$item->item_id ,
                     'required_quantity'=>$item->required_quantity ,
                     'item_id'=>$item->item_id,
-                    'item'=>Item::query()->find($item->item_id)->name,
+                    'item'=>Item::query()->findOrFail($item->item_id)->name,
                     'item_unit_id'=> $this->when(!is_null($item->item_unit_id), $item->item_unit_id),
                   ];
           }),

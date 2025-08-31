@@ -162,6 +162,9 @@ class InventoryReportRepository
         if (!empty($filters['limit'])) {
             $query->limit($filters['limit']);
         }
+        else{
+            $query->limit(10);
+        }
 
         return $query->get();
     }
@@ -195,6 +198,9 @@ class InventoryReportRepository
 
         if (!empty($filters['limit'])) {
             $query->limit($filters['limit']);
+        }
+        else{
+            $query->limit(10);
         }
 
         return $query->get();
