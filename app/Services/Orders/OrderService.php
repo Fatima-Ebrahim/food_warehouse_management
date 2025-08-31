@@ -32,7 +32,6 @@ class OrderService{
         protected OrderOfferRepository $orderOfferRepository ,
         protected SpecialOfferRepository $offerRepository,
         protected CartOfferRepository $cartOfferRepository,
-
     ) {}
     public function confirmOrder(int $userId, string $paymentType, ?array $items,?array $offers, ?int $pointsUsed = 0)
     {
@@ -191,7 +190,7 @@ class OrderService{
         return $this->orderRepository->getAllPendingOrders();
     }
 
-        public function updateOrderStatus($order_id, $status)
+    public function updateOrderStatus($order_id, $status)
         {
             $order = $this->orderRepository->getWithItems($order_id);
             $userId = $this->orderRepository->getOrderOwner($order);
@@ -221,7 +220,7 @@ class OrderService{
     {
         $order = $this->orderRepository->get($data['order_id']);
         $order = $this->orderRepository->getOrderWithRelations($order);
-
+        $userId=auth()->user()->id;
         if (!$order) {
             throw new \Exception('QR code غير صالح.');
         }
@@ -230,7 +229,13 @@ class OrderService{
             throw new \Exception("تم تأكيد استلام هذا الطلب مسبقاً.");
         }
 
-        DB::transaction(function () use ($data, $order) {
+        if($order->payment_type==="cash"){
+            if($order->final_price> $data['paidAmount'])
+                throw new \Exception("يجب ان يتم دفع المبلغ كاملا عند الدفع نقدي");
+            elseif ($order->final_price< $data['paidAmount'])
+                throw new \Exception("المبلغ المطلوب دفعه اقل من الذي تم دفعه ");
+        }
+        DB::transaction(function () use ($userId, $data, $order) {
             app(FifoStockDeductionService::class)->deductStockFromBatches($order, $data['batchesData']);
             $order->update([
                 'status' => $order->payment_type === 'cash' ? 'paid' : 'partially_paid'
@@ -239,6 +244,12 @@ class OrderService{
                 app(InstallmentService::class)->createInitialInstallment($order, $data['paidAmount']);
             }
 
+            $pointsSetting= app(PointsSettings::class);
+
+            if($pointsSetting->invoice_threshold_amount<=$order->total_price){
+                $times=$order->total_price / $pointsSetting->invoice_threshold_amount;
+               $this->customerRepository->addPoints($userId,($pointsSetting->points_per_threshold)*$times);
+            }
         });
 
         return [
